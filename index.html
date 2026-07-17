@@ -370,6 +370,7 @@ table tr:hover { background:var(--bg-hover); }
               <button class="chat-quick-btn" onclick="aiSend('promo gold')"><span class="ms sm">payments</span> Promo Gold</button>
               <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms sm">bar_chart</span> Status</button>
               <button class="chat-quick-btn" onclick="aiSend('tips ban')"><span class="ms">lightbulb</span> Tips Ban</button>
+              <button class="chat-quick-btn" onclick="aiSend('research Michelin Indonesia')"><span class="ms sm">travel_explore</span> Research</button>
             </div>
             <div class="chat-messages" id="chatMessages">
               <div class="chat-bubble ai" id="aiWelcomeMsg">
@@ -665,6 +666,23 @@ table tr:hover { background:var(--bg-hover); }
         </div>
       </div>
 
+      <!-- Serper API Section -->
+      <div class="settings-section">
+        <div class="settings-section-title"><span class="ms">travel_explore</span> Web Search & Serper</div>
+        <div class="settings-key-wrap">
+          <span id="settingsSerperDot" class="settings-status-dot gray"></span>
+          <input class="settings-key-input" id="settingsSerperKey" type="password" placeholder="Masukkan Serper API Key...">
+          <button class="btn btn-sm btn-outline" onclick="saveSerperKey()" style="white-space:nowrap;"><span class="ms sm">save</span> Simpan</button>
+          <button class="btn btn-sm btn-success" onclick="testSerperKey()" style="white-space:nowrap;"><span class="ms sm">check_circle</span> Test</button>
+        </div>
+        <div class="settings-genai-info" style="margin-top:8px;">
+          <span id="settingsSerperStatus"><span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Riset web tidak aktif</span>
+        </div>
+        <div class="settings-genai-info" style="margin-top:4px;">
+          <span class="ms sm" style="vertical-align:middle;color:var(--text-muted);font-size:14px;">info</span> Dibutuhkan untuk Company Research. Dapatkan key gratis di <a href="https://serper.dev" target="_blank" style="color:var(--primary-soft);">serper.dev</a>
+        </div>
+      </div>
+
       <!-- Bisnis Section -->
       <div class="settings-section">
         <div class="settings-section-title"><span class="ms">store</span> Informasi Bisnis</div>
@@ -942,6 +960,11 @@ function openSettingsModal() {
   if (s.storeName) document.getElementById('settingsStoreName').value = s.storeName;
   if (s.phone) document.getElementById('settingsPhone').value = s.phone;
   if (s.wa) document.getElementById('settingsWa').value = s.wa;
+  // Load Serper key
+  if (s.serperKey) {
+    document.getElementById('settingsSerperKey').value = s.serperKey;
+    updateSerperStatus();
+  }
   // Load WhatsApp settings
   if (s.autoReply) document.getElementById('settingsAutoReply').classList.add('active');
   if (s.hoursStart) document.getElementById('settingsHoursStart').value = s.hoursStart;
@@ -993,16 +1016,36 @@ function testGroqKey() {
   s.groqKey = key;
   saveSettings(s);
   var dot = document.getElementById('settingsGroqDot');
-  // Validate format: Groq keys start with 'gsk_'
-  if (key.startsWith('gsk_') && key.length >= 20) {
+  var statusEl = document.getElementById('settingsGroqStatus');
+  // Test via actual Groq API call
+  showToast('info', 'Menguji koneksi Groq...');
+  dot.className = 'settings-status-dot yellow';
+  fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: s.groqModel || 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: 'Say OK' }],
+      max_tokens: 5,
+    }),
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function() {
     dot.className = 'settings-status-dot green';
-    document.getElementById('settingsGroqStatus').innerHTML = '<span class="settings-status-dot green" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Key valid! Terhubung via Python backend nanti';
-    showToast('success', 'Key format valid!');
-  } else {
+    statusEl.innerHTML = '<span class="settings-status-dot green" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Terhubung! AI siap digunakan dari browser';
+    showToast('success', 'Groq API Key valid! AI aktif!');
+  })
+  .catch(function(e) {
     dot.className = 'settings-status-dot gray';
-    document.getElementById('settingsGroqStatus').innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Format Key tidak valid (harus gsk_...)';
-    showToast('error', 'Format Key salah');
-  }
+    statusEl.innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Gagal terhubung: ' + e.message;
+    showToast('error', 'Koneksi gagal: ' + e.message);
+  });
 }
 
 function saveSettingsField(field, value) {
@@ -1957,6 +2000,29 @@ function aiSend(msg) {
   var key = s.groqKey || '';
   
   if (key && key.startsWith('gsk_') && key.length >= 20) {
+    // ─── Detect Company Research ───
+    var researchMatch = text.match(/^(research|riset|cari perusahaan|profil|info|teliti)\s+(.+)/i);
+    var serperKey = s.serperKey || '';
+    if (researchMatch && serperKey && serperKey.length > 10) {
+      var company = researchMatch[2];
+      document.getElementById('typing')?.remove();
+      var typing2 = '<div class="chat-typing" id="typing"><span></span><span></span><span></span></div>';
+      msgs.innerHTML += typing2;
+      msgs.scrollTop = msgs.scrollHeight;
+      callCompanyResearch(company, serperKey, key, s.groqModel, function(reply) {
+        document.getElementById('typing')?.remove();
+        var formatted = reply.replace(/\n/g, '<br>');
+        msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
+        msgs.scrollTop = msgs.scrollHeight;
+        _aiHistory.push({ role: 'assistant', content: reply });
+      });
+      return;
+    } else if (researchMatch && !serperKey) {
+      document.getElementById('typing')?.remove();
+      msgs.innerHTML += '<div class="chat-bubble ai">Untuk Company Research, Anda perlu mengatur <strong>Serper API Key</strong> di Pengaturan terlebih dahulu.<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
+      msgs.scrollTop = msgs.scrollHeight;
+      return;
+    }
     // ─── Groq AI Mode ───
     callGroqAI(text, s, function(reply) {
       document.getElementById('typing')?.remove();
@@ -1978,15 +2044,165 @@ function aiSend(msg) {
   }
 }
 
-// ─── Groq API — Web chat only works via desktop app ───
+// ─── Groq API - Real browser-based call ───
 function callGroqAI(userText, settings, callback) {
-  callback(
-    '**Groq AI hanya tersedia di aplikasi desktop.**\n\n' +
-    'Buka **Toko Ban Manager App** (Python), klik gear icon, ' +
-    'masukkan Groq API Key, lalu gunakan AI Command dari sana.\n\n' +
-    'Halaman web ini hanya menampilkan data — AI tidak bisa ' +
-    'dipanggil langsung dari browser dengan Groq.'
-  );
+  var apiKey = settings.groqKey || '';
+  var model = settings.groqModel || 'llama-3.3-70b-versatile';
+
+  // Build messages with system prompt + history + current message
+  var messages = [
+    { role: 'system', content: AI_SYSTEM_PROMPT },
+  ];
+  // Add history (last 6 messages to save tokens)
+  var history = _aiHistory.slice(-6);
+  history.forEach(function(m) {
+    messages.push({ role: m.role, content: m.content });
+  });
+  messages.push({ role: 'user', content: userText });
+
+  fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 1024,
+    }),
+  })
+  .then(function(resp) {
+    if (!resp.ok) {
+      return resp.json().then(function(err) {
+        throw new Error(err.error?.message || 'API Error: ' + resp.status);
+      });
+    }
+    return resp.json();
+  })
+  .then(function(data) {
+    var reply = data.choices[0].message.content.trim();
+    callback(reply);
+  })
+  .catch(function(err) {
+    callback('Maaf, terjadi kesalahan saat memanggil Groq AI.\n\nError: ' + err.message);
+  });
+}
+
+// ─── Serper Web Search API ───
+function callSerperSearch(query, apiKey, callback) {
+  fetch('https://google.serper.dev/search', {
+    method: 'POST',
+    headers: {
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ q: query, num: 5 }),
+  })
+  .then(function(resp) {
+    if (!resp.ok) throw new Error('Serper error: ' + resp.status);
+    return resp.json();
+  })
+  .then(function(data) {
+    var results = data.organic || [];
+    var text = '';
+    if (data.knowledgeGraph) {
+      text += 'Profil: ' + (data.knowledgeGraph.title || '') + '\n';
+      text += (data.knowledgeGraph.description || '') + '\n\n';
+    }
+    results.forEach(function(r, i) {
+      text += (i+1) + '. ' + r.title + '\n';
+      text += '   ' + (r.snippet || '') + '\n\n';
+    });
+    callback(null, text);
+  })
+  .catch(function(err) {
+    callback(err, null);
+  });
+}
+
+// ─── Company Research (Serper Search + Groq Synthesis) ───
+function callCompanyResearch(company, serperKey, groqKey, model, callback) {
+  callSerperSearch(company + ' company profile overview', serperKey, function(err, searchText) {
+    if (err) {
+      callback('Gagal mencari data perusahaan. Periksa SERPER_API_KEY.\n\nError: ' + err.message);
+      return;
+    }
+    // Use Groq to synthesize
+    var prompt = 'Buat laporan riset perusahaan dalam Bahasa Indonesia tentang "' + company + '" berdasarkan data web berikut.\n\n' +
+      'Struktur laporan:\n1. **Overview** — Apa yang dilakukan perusahaan\n2. **Produk/Layanan** — Produk utama\n3. **Target Pasar** — Siapa target pelanggan\n4. **Market Position** — Posisi di pasar\n5. **Strategi** — Rekomendasi untuk kompetisi/kerjasama\n\nData Web:\n' + searchText;
+
+    fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + groqKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 1024,
+      }),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var report = d.choices[0].message.content.trim();
+      callback('🔬 Company Research: ' + company + '\n\n' + report);
+    })
+    .catch(function(e) {
+      callback('Riset web berhasil, tapi gagal synthesize dengan Groq.\n\nData mentah:\n' + searchText);
+    });
+  });
+}
+
+// ─── Update Serper Status ───
+function updateSerperStatus() {
+  var s = getSettings();
+  var dot = document.getElementById('settingsSerperDot');
+  var status = document.getElementById('settingsSerperStatus');
+  var key = s.serperKey || '';
+  if (key && key.length > 10) {
+    dot.className = 'settings-status-dot yellow';
+    status.innerHTML = '<span class="settings-status-dot yellow" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> API Key tersimpan — siap digunakan';
+  } else {
+    dot.className = 'settings-status-dot gray';
+    status.innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Riset web tidak aktif';
+  }
+}
+
+// ─── Save Serper Key ───
+function saveSerperKey() {
+  var s = getSettings();
+  s.serperKey = document.getElementById('settingsSerperKey').value;
+  saveSettings(s);
+  updateSerperStatus();
+  showToast('success', 'Serper API Key tersimpan!');
+}
+
+// ─── Test Serper Key ───
+function testSerperKey() {
+  var s = getSettings();
+  var key = document.getElementById('settingsSerperKey').value || s.serperKey || '';
+  if (!key || key.length < 10) {
+    showToast('error', 'Masukkan Serper API Key terlebih dahulu');
+    return;
+  }
+  s.serperKey = key;
+  saveSettings(s);
+  var dot = document.getElementById('settingsSerperDot');
+  callSerperSearch('test query', key, function(err, result) {
+    if (err) {
+      dot.className = 'settings-status-dot gray';
+      document.getElementById('settingsSerperStatus').innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Gagal terhubung — periksa key Anda';
+      showToast('error', 'Serper key tidak valid!');
+    } else {
+      dot.className = 'settings-status-dot green';
+      document.getElementById('settingsSerperStatus').innerHTML = '<span class="settings-status-dot green" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Terhubung! Web search siap digunakan';
+      showToast('success', 'Serper API Key valid!');
+    }
+  });
 }
 
 // ─── Reset Chat ───

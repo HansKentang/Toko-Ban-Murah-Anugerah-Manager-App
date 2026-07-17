@@ -226,8 +226,7 @@ class TokoBanApp:
       hover_color=COLORS["primary_light"],
       font=ctk.CTkFont(size=14),
       command=self._open_api_settings,
-      corner_radius=16,
-      tooltip="API Settings"
+      corner_radius=16
     )
     settings_btn.pack(side="right")
 
