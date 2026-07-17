@@ -1330,7 +1330,8 @@ function invShowSizes(brand, modelName) {
       '<td><strong>Rp ' + formatRupiah(p.hjual) + '</strong></td>' +
       '<td class="text-muted text-sm">Rp ' + formatRupiah(p.hbeli) + '</td>' +
       '<td style="color:' + marginColor + ';font-weight:600">' + margin + '%</td>' +
-      '<td><span style="color:' + stokColor + ';font-weight:600">' + stok + '</span></td>' +
+      '<td style="white-space:nowrap"><input type="number" id="stok-' + p.id + '" value="' + stok + '" min="0" style="width:60px;padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;text-align:center;font-family:inherit;color:' + stokColor + '">' +
+      '<button class="btn btn-sm" style="margin-left:4px;padding:4px 8px;background:var(--primary-soft);color:white;border:none;border-radius:6px;cursor:pointer;font-size:11px;" onclick="updateStock(' + "'" + p.id + "'" + ')"><span class="ms sm" style="font-size:14px;">save</span></button></td>' +
       '<td><span style="color:' + cabangColor + ';font-weight:600;font-size:11px;">' + cabang + '</span></td>' +
       '<td><button class="btn btn-sm btn-outline" onclick="editProduct(' + "'" + p.id + "'" + ')"><span class=\"ms sm\">edit</span></button> ' +
       '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + "'" + p.id + "'" + ')"><span class=\"ms sm\">delete</span></button></td></tr>';
@@ -1345,6 +1346,34 @@ function invShowSizes(brand, modelName) {
     '<span>Modal: Rp ' + formatRupiah(totalCost) + '</span>' +
     '<span class=\"ms sm\">trending_up</span> Untung: Rp ' + formatRupiah(totalValue - totalCost) + '</span></div>';
   document.getElementById('invContent').innerHTML = html;
+}
+
+function updateStock(id) {
+  var input = document.getElementById('stok-' + id);
+  if (!input) return;
+  var val = parseInt(input.value);
+  if (isNaN(val) || val < 0) val = 0;
+  var allProds = getProducts();
+  var found = false;
+  for (var i = 0; i < allProds.length; i++) {
+    if (allProds[i].id === id) {
+      allProds[i].stok = val;
+      allProds[i].update = new Date().toISOString().slice(0,10);
+      found = true;
+      break;
+    }
+  }
+  if (!found) { showToast('error','Produk tidak ditemukan'); return; }
+  // Apply modifications on top
+  var mods = getProdMods();
+  mods.edited[id] = { stok: val, update: new Date().toISOString().slice(0,10) };
+  saveProdMods(mods);
+  // Update full data
+  showToast('success','Stok ' + id + ' diubah menjadi ' + val);
+  // Refresh the view if still in product detail
+  if (_invDrill.level === 2 && _invDrill.brand) {
+    invShowProducts(_invDrill.brand, _invDrill.model);
+  }
 }
 
 function invSearchFilter() {
