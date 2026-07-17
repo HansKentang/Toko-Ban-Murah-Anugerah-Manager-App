@@ -172,7 +172,7 @@ class TokoBanApp:
 
     self.nav_items = [
       ("", "Dashboard", "dashboard"),
-      ("", "AI Command", "ai"),
+      ("🐱", "AI Command", "ai"),
       ("", "WhatsApp Bot", "whatsapp"),
       ("", "Inventory", "inventory"),
       ("", "Price List", "price_list"),
@@ -1943,15 +1943,15 @@ class TokoBanApp:
     header_frame.grid(row=0, column=0, sticky="ew")
     header_frame.grid_columnconfigure(1, weight=1)
 
-    ctk.CTkLabel(header_frame, text="", font=ctk.CTkFont(size=22)
-          ).grid(row=0, column=0, padx=(18, 5), pady=10)
+    ctk.CTkLabel(header_frame, text="🐱", font=ctk.CTkFont(size=28)
+          ).grid(row=0, column=0, padx=(14, 2), pady=8)
 
     self.ai_header_title = ctk.CTkLabel(
-      header_frame, text="AI Command Center",
-      font=ctk.CTkFont(size=16, weight="bold"),
+      header_frame, text="Mixmoi",
+      font=ctk.CTkFont(size=18, weight="bold"),
       text_color="white"
     )
-    self.ai_header_title.grid(row=0, column=1, padx=2, pady=5, sticky="w")
+    self.ai_header_title.grid(row=0, column=1, padx=(2, 0), pady=(5, 1), sticky="w")
     
     self.groq_status_label = ctk.CTkLabel(
       header_frame, text=self._get_groq_status_text(),
