@@ -196,8 +196,9 @@ table tr:hover { background:var(--bg-hover); }
 .chat-msg-group.user-group { flex-direction:row-reverse; }
 .chat-msg-group.ai-group { flex-direction:row; }
 .chat-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px; background:var(--bg); border:1.5px solid var(--border-light); }
-.chat-avatar.mixmoi-avatar { background:linear-gradient(135deg,var(--primary),var(--primary-soft)); border-color:var(--primary-soft); font-size:14px; box-shadow:0 2px 8px rgba(46,125,50,0.15); }
-.chat-avatar.user-avatar { background:#e8f5e9; border-color:#a5d6a7; font-size:14px; }
+.chat-avatar.mixmoi-avatar { background:linear-gradient(135deg,var(--primary),var(--primary-soft)); border-color:var(--primary-soft); font-size:14px; box-shadow:0 2px 8px rgba(46,125,50,0.15); padding:0; overflow:hidden; }
+.chat-avatar .cat-avatar-emoji { font-size:34px; line-height:1; transform:translateY(-2px); display:flex; align-items:center; justify-content:center; }
+.chat-avatar.user-avatar { background:#e8f5e9; border-color:#a5d6a7; font-size:18px; font-weight:600; color:var(--primary-soft); }
 .chat-bubble-wrap { display:flex; flex-direction:column; max-width:75%; }
 .chat-bubble { padding:10px 16px; border-radius:16px; font-size:13px; line-height:1.65; white-space:pre-wrap; word-break:break-word; position:relative; }
 .chat-bubble.user { background:#dcf8c6; align-self:flex-end; border-bottom-right-radius:4px; color:var(--text); }
@@ -450,7 +451,7 @@ table tr:hover { background:var(--bg-hover); }
           <!-- Header with Mixmoi branding -->
           <div style="background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:16px 20px;color:white;display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid rgba(255,255,255,0.2);flex-shrink:0;">🐱</div>
+              <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.2);flex-shrink:0;overflow:hidden;position:relative;"><span style="font-size:32px;line-height:1;transform:translateY(-2px);filter:brightness(1.1);">😺</span></div>
               <div>
                 <strong style="font-size:16px;">Mixmoi</strong>
                 <div style="font-size:11px;opacity:0.8;display:flex;align-items:center;gap:6px;margin-top:1px;">
@@ -1289,6 +1290,7 @@ function navigate(page) {
   var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms">🐱</span> Mixmoi', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog', desktop:'<span class=\"ms\">💻</span> Desktop App' };
   document.getElementById('pageTitle').innerHTML = (titles[page] || '<span class="ms">dashboard</span> <span>Dashboard</span>');
   if (page === 'dashboard') renderDashboard();
+  if (page === 'ai') { setTimeout(function() { var ci = document.getElementById('chatInput'); if (ci) ci.focus(); }, 300); }
   if (page === 'inventory') renderInventory();
   if (page === 'pricelist') renderPriceList();
   if (page === 'sales') renderSalesDashboard();
@@ -2259,7 +2261,14 @@ function addChatMessage(role, text, opts) {
   // Avatar
   var avatar = document.createElement('div');
   avatar.className = 'chat-avatar ' + (role === 'ai' ? 'mixmoi-avatar' : 'user-avatar');
-  avatar.textContent = role === 'ai' ? '🐱' : '👤';
+  if (role === 'ai') {
+    var catSpan = document.createElement('span');
+    catSpan.className = 'cat-avatar-emoji';
+    catSpan.textContent = '😺';
+    avatar.appendChild(catSpan);
+  } else {
+    avatar.textContent = '👤';
+  }
   group.appendChild(avatar);
   
   // Bubble wrap
@@ -2361,8 +2370,10 @@ function updateAIStatus(config) {
 }
 
 function clearInput() {
-  document.getElementById('chatInput').value = '';
-  document.getElementById('chatInput').focus();
+  var el = document.getElementById('chatInput');
+  el.value = '';
+  el.style.height = 'auto';
+  el.focus();
   hideSuggestions();
 }
 
@@ -2754,7 +2765,28 @@ function callGroqAI(userText, settings, callback) {
     callback(reply);
   })
   .catch(function(err) {
-    callback('Maaf, terjadi kesalahan saat memanggil Groq AI.\n\nError: ' + err.message);
+    var msg = err.message || '';
+    var friendlyMsg = 'Maaf, saya mengalami masalah saat terhubung ke Groq AI. 😿\n\n';
+    if (msg.includes('401') || msg.includes('unauthorized') || msg.includes('Unauthorized') || msg.includes('auth')) {
+      friendlyMsg += '🔑 **API Key tidak valid!**\n\n';
+      friendlyMsg += 'API Key Groq Anda ditolak. Silakan:\n';
+      friendlyMsg += '1. Buka **Pengaturan** (⚙️ di sidebar)\n';
+      friendlyMsg += '2. Masukkan Groq API Key yang benar\n';
+      friendlyMsg += '3. Dapatkan key gratis di **console.groq.com**';
+    } else if (msg.includes('429') || msg.includes('rate limit') || msg.includes('Rate limit') || msg.includes('too many')) {
+      friendlyMsg += '⏳ **Rate limit tercapai!**\n\nTerlalu banyak permintaan dalam waktu singkat. Silakan tunggu beberapa saat lalu coba lagi.';
+    } else if (msg.includes('500') || msg.includes('502') || msg.includes('503') || msg.includes('504')) {
+      friendlyMsg += '🔧 **Server Groq sedang sibuk.**\n\nLayanan Groq sedang mengalami gangguan. Silakan coba lagi dalam beberapa saat.';
+    } else if (msg.includes('fetch') || msg.includes('network') || msg.includes('Network') || msg.includes('Failed to fetch')) {
+      friendlyMsg += '🌐 **Koneksi internet terputus!**\n\nPeriksa koneksi internet Anda, lalu coba lagi.';
+    } else if (msg.includes('model') || msg.includes('Model')) {
+      friendlyMsg += '🤖 **Model AI tidak tersedia.**\n\n' + msg + '\n\nCoba ganti model di pengaturan.';
+    } else if (msg.includes('timeout')) {
+      friendlyMsg += '⏰ **Waktu permintaan habis.**\n\nPermintaan terlalu lama. Silakan coba lagi dengan pertanyaan yang lebih sederhana.';
+    } else {
+      friendlyMsg += '⚠️ **Error:** ' + msg + '\n\nSilakan coba lagi. Jika masalah berlanjut, periksa koneksi internet dan API Key Anda.';
+    }
+    callback(friendlyMsg);
   });
 }
 
