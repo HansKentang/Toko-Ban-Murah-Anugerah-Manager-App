@@ -1978,49 +1978,15 @@ function aiSend(msg) {
   }
 }
 
-// ─── Groq API Call (via Python backend proxy) ───
+// ─── Groq API — Web chat only works via desktop app ───
 function callGroqAI(userText, settings, callback) {
-  var model = settings.groqModel || 'llama-3.3-70b-versatile';
-  var key = settings.groqKey;
-  
-  // Build messages array
-  var messages = [];
-  messages.push({ role: 'system', content: AI_SYSTEM_PROMPT + buildBusinessContext() });
-  var history = _aiHistory.slice(-(AI_MAX_HISTORY * 2));
-  history.forEach(function(m) {
-    messages.push({ role: m.role, content: m.content });
-  });
-  messages.push({ role: 'user', content: userText });
-  
-  // Try Python backend proxy first (main.py serves on port 5000)
-  fetch('http://127.0.0.1:5000/api/ai/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: userText, model: model })
-  })
-  .then(function(r) {
-    if (r.ok) return r.json();
-    // Fallback: Groq doesn't support browser CORS, show message
-    throw new Error('web_cors');
-  })
-  .then(function(data) {
-    callback(data.reply || 'Maaf, tidak ada balasan.');
-  })
-  .catch(function(err) {
-    if (err.message === 'web_cors') {
-      callback(
-        'Groq AI hanya tersedia di **aplikasi desktop** (Python).\n\n' +
-        'Buka aplikasi Toko Ban Manager App, ' +
-        'masukkan Groq API Key di Pengaturan (gear icon), ' +
-        'lalu gunakan AI Command Center dari sana.\n\n' +
-        'Atau install dan jalankan server backend.\n\n' +
-        'Atau, masukkan Groq API Key di Pengaturan halaman ini, ' +
-        'lalu restart aplikasi desktop.'
-      );
-    } else {
-      callback('Maaf, terjadi gangguan: ' + err.message);
-    }
-  });
+  callback(
+    '**Groq AI hanya tersedia di aplikasi desktop.**\n\n' +
+    'Buka **Toko Ban Manager App** (Python), klik gear icon, ' +
+    'masukkan Groq API Key, lalu gunakan AI Command dari sana.\n\n' +
+    'Halaman web ini hanya menampilkan data — AI tidak bisa ' +
+    'dipanggil langsung dari browser dengan Groq.'
+  );
 }
 
 // ─── Reset Chat ───
