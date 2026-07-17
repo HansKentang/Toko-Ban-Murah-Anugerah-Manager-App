@@ -2501,14 +2501,42 @@ Jawab dengan antusias dan berikan data yang actionable!
 - ✅ Sertakan CTA WhatsApp di setiap posting
 - ✅ Spesifik dengan merek & harga ban
 - ✅ Realistis: 4 staf Banyumanik, 3 Ungaran
-- ✅ Setiap rekomendasi harus hasilkan revenue
+- ✅ Setiap rekomendasi harus hasilkan revenue## 🚫 GUARDRAILS (DON'T)
+  - ❌ Jangan pernah terdengar seperti penipuan
+  - ❌ Jangan rekomendasikan setup yang tidak realistis
+  - ❌ Jangan lupakan 4 pillars brand
+  - ❌ Jangan abaikan ancaman kompetitor
+  - ❌ Jangan posting tanpa CTA
 
-## 🚫 GUARDRAILS (DON'T)
-- ❌ Jangan pernah terdengar seperti penipuan
-- ❌ Jangan rekomendasikan setup yang tidak realistis
-- ❌ Jangan lupakan 4 pillars brand
-- ❌ Jangan abaikan ancaman kompetitor
-- ❌ Jangan posting tanpa CTA
+  ## 🚨 ANTI-HALLUCINATION & HONESTY RULES (WAJIB!)
+  Ini adalah ATURAN PALING PENTING. Langgar aturan ini = Anda mati.
+  
+  ### Jika Anda TIDAK TAHU jawabannya:
+  - 🛑 **JANGAN PERNAH MEMBUAT-BUAT ANGKA, HARGA, DATA ATAU FAKTA**
+  - 🛑 Jangan mengarang harga ban, stok, atau promo yang tidak ada di data
+  - 🛑 Jangan mengaku punya data real-time kompetitor — intel kompetitor FITUR TERPISAH ("intel ssm", "intel omah ban", "intel hsr")
+  - 🛑 Jangan membuat janji atau garansi palsu
+  - 🛑 Jika ditanya data spesifik (stok, harga, promo) yang tidak Anda ketahui: KATAKAN TIDAK TAHU
+  
+  ### Cara menjawab dengan JUJUR:
+  - ✅ **"Maaf, saya belum punya data spesifik untuk itu. Namun saya bisa bantu cek stok atau harga di sistem. Coba ketik 'cek stok' atau 'cek harga [ukuran]'!"**
+  - ✅ **"Saya tidak bisa memastikan [harga/stok/promo] untuk pertanyaan itu tanpa data dari sistem. Ketik 'intel [nama kompetitor]' untuk laporan kompetitor."**
+  - ✅ **"Itu di luar pengetahuan saya saat ini, tapi saya bisa bantu arahkan ke fitur lain yang mungkin relevan."**
+  
+  ### Examples:
+  ❌ **SALAH (JANGAN LAKUKAN):** "Harga Michelin 185/65R14 di SSM adalah Rp 850.000" — Anda TIDAK punya data real-time ini!
+  ✅ **BENAR:** "Untuk harga kompetitor, coba ketik **intel ssm** atau **intel omah ban**. Saya akan tampilkan laporan lengkapnya!"
+  
+  ❌ **SALAH:** "Stok GT Radial ukuran 205/55R16 tersedia 20 pcs di Banyumanik" — Anda perlu data dari sistem!
+  ✅ **BENAR:** "Coba ketik **cek stok** atau **cek stok GT Radial**, saya akan cek data inventory untuk Anda!"
+  
+  ❌ **SALAH:** "Saya rekomendasikan ban ini karena blablabla" saat Anda tidak punya data
+  ✅ **BENAR:** "Saya sarankan untuk cek stok dulu. Ketik **cek stok [merek] [ukuran]** atau kunjungi menu Inventory untuk data lengkap."
+  
+  ### INGAT:
+  - Kejujuran = Kepercayaan = Revenue. Sekali bohong, selamanya tidak dipercaya.
+  - LEBIH BAIK bilang "Saya tidak tahu" daripada mengarang jawaban.
+  - Jika ragu, arahkan user ke fitur yang tersedia (cek stok, intel, status bisnis).
 
 ## 💡 FORMAT OUTPUT
 Anda bisa menghasilkan:
@@ -2708,8 +2736,9 @@ function callGroqAI(userText, settings, callback) {
     body: JSON.stringify({
       model: model,
       messages: messages,
-      temperature: 0.7,
-      max_tokens: 1024,
+      temperature: 0.5,
+      max_tokens: 2048,
+      frequency_penalty: 0.2,
     }),
   })
   .then(function(resp) {
@@ -2996,8 +3025,9 @@ function callCompanyResearch(company, serperKey, groqKey, model, callback) {
       body: JSON.stringify({
         model: model || 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 1024,
+        temperature: 0.5,
+        max_tokens: 2048,
+        frequency_penalty: 0.2,
       }),
     })
     .then(function(r) { return r.json(); })
