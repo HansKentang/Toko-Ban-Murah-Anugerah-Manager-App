@@ -1978,51 +1978,48 @@ function aiSend(msg) {
   }
 }
 
-// ─── Groq API Call ───
+// ─── Groq API Call (via Python backend proxy) ───
 function callGroqAI(userText, settings, callback) {
   var model = settings.groqModel || 'llama-3.3-70b-versatile';
   var key = settings.groqKey;
   
-  // Build messages array with system instruction + history
+  // Build messages array
   var messages = [];
-  // System prompt
   messages.push({ role: 'system', content: AI_SYSTEM_PROMPT + buildBusinessContext() });
-  // Chat history
   var history = _aiHistory.slice(-(AI_MAX_HISTORY * 2));
   history.forEach(function(m) {
     messages.push({ role: m.role, content: m.content });
   });
-  // Add current user message
   messages.push({ role: 'user', content: userText });
   
-  fetch('https://api.groq.com/openai/v1/chat/completions', {
+  // Try Python backend proxy first (main.py serves on port 5000)
+  fetch('http://127.0.0.1:5000/api/ai/chat', {
     method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + key,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 2048
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: userText, model: model })
   })
   .then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + r.statusText);
-    return r.json();
+    if (r.ok) return r.json();
+    // Fallback: Groq doesn't support browser CORS, show message
+    throw new Error('web_cors');
   })
   .then(function(data) {
-    if (data.error) {
-      callback('Maaf, terjadi kesalahan: ' + (data.error.message || 'Unknown error'));
-    } else if (data.choices && data.choices[0] && data.choices[0].message) {
-      callback(data.choices[0].message.content);
-    } else {
-      callback('Maaf, saya tidak bisa memproses permintaan saat ini. Coba lagi ya!');
-    }
+    callback(data.reply || 'Maaf, tidak ada balasan.');
   })
   .catch(function(err) {
-    callback('Maaf, terjadi gangguan: ' + err.message + '. Cek API Key atau koneksi internet Anda.');
+    if (err.message === 'web_cors') {
+      callback(
+        'Groq AI hanya tersedia di **aplikasi desktop** (Python).\n\n' +
+        'Buka aplikasi Toko Ban Manager App, ' +
+        'masukkan Groq API Key di Pengaturan (gear icon), ' +
+        'lalu gunakan AI Command Center dari sana.\n\n' +
+        'Atau install dan jalankan server backend.\n\n' +
+        'Atau, masukkan Groq API Key di Pengaturan halaman ini, ' +
+        'lalu restart aplikasi desktop.'
+      );
+    } else {
+      callback('Maaf, terjadi gangguan: ' + err.message);
+    }
   });
 }
 
