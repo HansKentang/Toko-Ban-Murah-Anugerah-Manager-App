@@ -16,6 +16,13 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, Callable
 
+# ─── Company Research module (uses Serper + Gemini) ─────────────────────────
+try:
+    from tools.company_research import research_company
+    _has_company_research = True
+except ImportError:
+    _has_company_research = False
+
 # ─── Schedule library (optional) ────────────────────────────────────────────
 try:
     import schedule as sched
@@ -25,10 +32,10 @@ except ImportError:
 
 # ─── Gemini AI import (optional) ────────────────────────────────────────────
 try:
-    import google.generativeai as genai
-    _has_genai = True
+    from groq import Groq
+    _has_groq = True
 except ImportError:
-    _has_genai = False
+    _has_groq = False
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -145,6 +152,21 @@ AGENT_DEFINITIONS = [
         "capabilities": ["Analisis strategi kompetitor & counter-move",
                          "Rekomendasi paket loss leader & high-margin",
                          "Buat konten Instagram/medsos sesuai template Growth Partner"]
+    },
+    {
+        "id": "company_research",
+        "icon": "🔬",
+        "name": "Company Research",
+        "color": "#00ACC1",
+        "bg_color": "#e0f7fa",
+        "desc": "Riset perusahaan & kompetitor via web search",
+        "keywords": ["research", "riset", "company", "perusahaan", "cari perusahaan",
+                     "teliti", "profil perusahaan", "company profile", "laporan perusahaan",
+                     "about", "tentang", "info perusahaan", "google"],
+        "capabilities": ["Cari profil & overview perusahaan",
+                         "Analisis kompetitor mendalam via web",
+                         "Laporan tren pasar & berita terbaru",
+                         "Rekomendasi strategi bisnis"]
     }
 ]
 
@@ -262,6 +284,11 @@ Return JSON with format:
 - content_creation: Buat konten Instagram template Growth Partner
   { "topic": "promo/tips/produk", "tone": "Fast/Premium/Trustable/Affordable", "store": "Banyumanik/Ungaran" }
 
+🔬 COMPANY RESEARCH (id: company_research):
+- company_research: Riset perusahaan via web search
+  { "company": "nama perusahaan atau domain" }
+  Web search via Serper API + ringkasan Gemini AI
+
 ## LANGUAGE & OPERATIONAL GUIDELINES
 - Internal analytics: crisp, business-focused bahasa Indonesia
 - Social copy: engaging, transparent, never scammy. Use "Paling Murah", "Pelayanan Premium", "Sat-set Gak Pake Lama"
@@ -291,63 +318,67 @@ class AICommandCenter:
     Fallback to keyword matching if Gemini is unavailable.
     """
 
-    def __init__(self, tools: dict, genai_api_key: str = ""):
+    def __init__(self, tools: dict, groq_api_key: str = ""):
         self.tools = tools
         self.command_history = []
         self.conversation_log = []
 
-        # ─── Initialize Gemini ───────────────────────────────────────────
-        self.genai_configured = False
-        self.genai_model_name = "gemini-2.0-flash-lite"
-        self.genai_model = None
-        self._init_genai(genai_api_key)
+        # ─── Initialize Groq ─────────────────────────────────────────────
+        self.groq_configured = False
+        self.groq_model = "llama-3.3-70b-versatile"
+        self.groq_client = None
+        self._init_groq(groq_api_key)
 
         # ─── Scheduler ─────────────────────────────────────────────────────
         self.scheduler_jobs = []
         self.scheduler_running = False
         self.scheduler_thread = None
 
-    def _init_genai(self, api_key: str):
-        """Initialize the Gemini client."""
-        if _has_genai and api_key:
+    def _init_groq(self, api_key: str):
+        """Initialize the Groq client."""
+        if _has_groq and api_key:
             try:
-                genai.configure(api_key=api_key)
-                self.genai_model = genai.GenerativeModel(
-                    self.genai_model_name,
-                    system_instruction=SYSTEM_PROMPT,
-                    generation_config={
-                        "temperature": 0.1,
-                        "max_output_tokens": 500,
-                        "response_mime_type": "application/json",
-                    }
+                self.groq_client = Groq(api_key=api_key)
+                # Quick test to verify the key works
+                test = self.groq_client.chat.completions.create(
+                    model=self.groq_model,
+                    messages=[{"role": "user", "content": "ok"}],
+                    max_tokens=5,
                 )
-                self.genai_configured = True
+                self.groq_configured = True
                 return True
             except Exception as e:
-                print(f"[AI] Failed to init Gemini: {e}")
+                print(f"[AI] Failed to init Groq: {e}")
         return False
 
-    def _interpret_with_genai(self, command: str) -> Optional[dict]:
-        """Use Gemini AI to interpret a natural language command (Supervisor thinking)."""
-        if not self.genai_configured:
+    def _interpret_with_groq(self, command: str) -> Optional[dict]:
+        """Use Groq AI to interpret a natural language command (Supervisor thinking)."""
+        if not self.groq_configured:
             return None
 
         try:
-            response = self.genai_model.generate_content(command)
-            result_text = response.text.strip()
+            response = self.groq_client.chat.completions.create(
+                model=self.groq_model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": command},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+                max_tokens=500,
+            )
+            result_text = response.choices[0].message.content.strip()
             result = json.loads(result_text)
 
-            # Validate the result has required fields
             if "action" in result:
                 return result
-            else:
-                return None
+            return None
 
         except json.JSONDecodeError:
-            print(f"[AI] Gemini returned invalid JSON: {result_text}")
+            print(f"[AI] Groq returned invalid JSON: {result_text}")
             return None
         except Exception as e:
-            print(f"[AI] Gemini API error: {e}")
+            print(f"[AI] Groq API error: {e}")
             return None
 
     def delegate_task(self, command: str) -> dict:
@@ -370,7 +401,7 @@ class AICommandCenter:
         """
         
         # ─── Try Gemini for smart delegation ─────────────────────────────
-        genai_result = self._interpret_with_genai(command)
+        genai_result = self._interpret_with_groq(command)
         
         if genai_result:
             sub_agents = genai_result.get("sub_agents", [])
@@ -504,7 +535,7 @@ class AICommandCenter:
         predicted_agent = determine_agent(command)
 
         # ─── TRY GEMINI SUPERVISOR DELEGATION FIRST (skip if called from fallback) ──
-        if self.genai_configured and not _skip_genai:
+        if self.groq_configured and not _skip_genai:
             delegation = self.delegate_task(command)
             if delegation and delegation.get("success", False):
                 self._log_conversation(command, delegation)
@@ -567,6 +598,9 @@ class AICommandCenter:
         result = result or self._cmd_growth_competitive_intel(command_lower)
         result = result or self._cmd_growth_pricing_strategy(command_lower)
         result = result or self._cmd_growth_content_creation(command_lower)
+
+        # 🔬 COMPANY RESEARCH commands
+        result = result or self._cmd_company_research(command_lower)
 
         # 🆕 NEW AUTOMATION commands
         result = result or self._cmd_random_promo(command_lower)
@@ -648,6 +682,8 @@ class AICommandCenter:
             "competitive_analysis": lambda: self._cmd_growth_competitive_intel(f"analisis kompetitor {params.get('competitor_data', 'SSM')}"),
             "pricing_strategy": lambda: self._cmd_growth_pricing_strategy(f"strategi harga {params.get('target_size', '185/65R14')} {params.get('brand', 'value')}"),
             "content_creation": lambda: self._cmd_growth_content_creation(f"buat konten {params.get('topic', 'promo')} {params.get('tone', 'Trustable')} {params.get('store', 'Banyumanik')}"),
+            # ── Company Research actions ──
+            "company_research": lambda: self._cmd_company_research(f"research {params.get('company', '')}"),
         }
 
         handler = action_map.get(action)
@@ -673,23 +709,13 @@ class AICommandCenter:
             "timestamp": datetime.now().isoformat()
         })
 
-    def set_genai_api_key(self, api_key: str) -> bool:
-        """Update the Gemini API key at runtime."""
-        return self._init_genai(api_key)
+    def set_groq_api_key(self, api_key: str) -> bool:
+        """Update the Groq API key at runtime."""
+        return self._init_groq(api_key)
 
-    def set_genai_model(self, model: str):
-        """Change the Gemini model name."""
-        self.genai_model_name = model
-        if self.genai_configured:
-            self.genai_model = genai.GenerativeModel(
-                self.genai_model_name,
-                system_instruction=SYSTEM_PROMPT,
-                generation_config={
-                    "temperature": 0.1,
-                    "max_output_tokens": 500,
-                    "response_mime_type": "application/json",
-                }
-            )
+    def set_groq_model(self, model: str):
+        """Change the Groq model name."""
+        self.groq_model = model
 
     # ═══════════════════════════════════════════════════════════════════
     # COMMAND PATTERNS (Fallback keyword matching)
@@ -751,6 +777,12 @@ class AICommandCenter:
 • "strategi harga loss leader" - Rekomendasi paket ban & pricing
 • "buat konten [promo/tips/produk]" - Buat konten Instagram + caption
 • "buat konten [topik] di Ungaran" - Konten spesifik lokasi
+
+🔬 *COMPANY RESEARCH (via Serper + Gemini):*
+• "research [nama perusahaan]" - Riset profil & overview perusahaan
+• "cari perusahaan [nama]" - Cari informasi lengkap perusahaan
+• "profil [nama perusahaan]" - Dapatkan laporan perusahaan
+• "info [nama perusahaan]" - Info & berita terbaru perusahaan
 
 🤖 *AUTOMASI BARU (pake Gemini AI):*
 • "promo random 5 orang" - Kirim promo ke N pelanggan acak
@@ -1747,6 +1779,59 @@ MASIH RAGU? CHAT LANGSUNG!
 #TokoBanMurah #BanMobil #PromoBan #Banyumanik #Ungaran #BanMurahAnugerah"""
 
     # ═══════════════════════════════════════════════════════════════════
+    # COMPANY RESEARCH — Serper + Gemini
+    # ═══════════════════════════════════════════════════════════════════
+
+    def _cmd_company_research(self, cmd: str) -> Optional[dict]:
+        """
+        Research any company via web search (Serper) + Gemini synthesis.
+        Trigger: "research [company name]" or "cari perusahaan [name]"
+        """
+        patterns = [
+            r'(?:research|riset|teliti|cari)\s+(?:perusahaan|company)?\s*(.+)',
+            r'(?:profil|profile|about|tentang)\s+(?:perusahaan|company)?\s*(.+)',
+            r'info\s+(?:perusahaan|company)?\s*(.+)',
+        ]
+        company = None
+        for p in patterns:
+            m = re.search(p, cmd, re.IGNORECASE)
+            if m:
+                company = m.group(1).strip()
+                break
+
+        if not company:
+            return None
+
+        # Fetch API keys
+        serper_key = os.environ.get("SERPER_API_KEY", "")
+        groq_key = os.environ.get("GROQ_API_KEY", "")
+
+        if not serper_key or not groq_key:
+            missing = []
+            if not serper_key:
+                missing.append("SERPER_API_KEY")
+            if not groq_key:
+                missing.append("GROQ_API_KEY")
+            return {
+                "action": "company_research",
+                "success": False,
+                "result": f"❌ API key tidak ditemukan: {', '.join(missing)}\n"
+                          f"Tambahkan ke file .env untuk menggunakan fitur riset perusahaan.",
+                "data": {},
+            }
+
+        if not _has_company_research:
+            return {
+                "action": "company_research",
+                "success": False,
+                "result": "❌ Modul company_research tidak ditemukan.",
+                "data": {},
+            }
+
+        result = research_company(company, serper_key, groq_key)
+        return result
+
+    # ═══════════════════════════════════════════════════════════════════
     # NEW AUTOMATION FEATURES
     # ═══════════════════════════════════════════════════════════════════
 
@@ -1894,32 +1979,22 @@ MASIH RAGU? CHAT LANGSUNG!
                 }
             return None
 
-        # Use Gemini to generate a smart reply
-        prompt = f"""Anda adalah asisten toko ban "Toko Ban Murah Anugerah". 
-Buat balasan WhatsApp yang ramah, profesional, dan membantu untuk pesan pelanggan ini:
-
-Pesan pelanggan: "{incoming_message}"
-
-Balasan harus:
-- Dalam Bahasa Indonesia yang natural
-- Ramah dan profesional
-- Menawarkan bantuan lebih lanjut
-- Maksimal 3 kalimat
-- Sertakan info promo jika relevan
-
-Balasan:"""
-
+        # Use Groq to generate a smart reply
         reply = None
-        if self.genai_configured:
+        if self.groq_configured:
             try:
-                reply_model = genai.GenerativeModel(
-                    self.genai_model_name,
-                    generation_config={"temperature": 0.7, "max_output_tokens": 200}
+                resp = self.groq_client.chat.completions.create(
+                    model=self.groq_model,
+                    messages=[
+                        {"role": "system", "content": "Anda adalah asisten toko ban Toko Ban Murah Anugerah. Balas pesan pelanggan dengan ramah, profesional, Bahasa Indonesia natural, maksimal 3 kalimat."},
+                        {"role": "user", "content": f"Pesan pelanggan: {incoming_message}"},
+                    ],
+                    temperature=0.7,
+                    max_tokens=200,
                 )
-                response = reply_model.generate_content(prompt)
-                reply = response.text.strip()
+                reply = resp.choices[0].message.content.strip()
             except Exception as e:
-                print(f"[AI] Gemini reply error: {e}")
+                print(f"[AI] Groq reply error: {e}")
 
         if not reply:
             # Fallback to template matching

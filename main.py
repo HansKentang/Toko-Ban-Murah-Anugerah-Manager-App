@@ -119,11 +119,11 @@ class TokoBanApp:
       "qr_catalog": QRCatalog(BUSINESS_NAME, "",
                   str(OUTPUT_DIR / "qr_codes")),
     }
-    # Get Gemini API key from environment (if available)
-    genai_api_key = os.environ.get("GEMINI_API_KEY", "")
+    # Get Groq API key from environment (if available)
+    groq_api_key = os.environ.get("GROQ_API_KEY", "")
     
     # Initialize AI Command Center with reference to all tools
-    tools["ai"] = AICommandCenter(tools, genai_api_key=genai_api_key)
+    tools["ai"] = AICommandCenter(tools, groq_api_key=groq_api_key)
     return tools
 
   # ─── UI Builder ──────────────────────────────────────────────────────
@@ -210,11 +210,11 @@ class TokoBanApp:
     settings_row = ctk.CTkFrame(bottom_frame, fg_color="transparent")
     settings_row.pack(fill="x")
     
-    self.genai_status_indicator = ctk.CTkLabel(
+    self.groq_status_indicator = ctk.CTkLabel(
       settings_row, text="●", font=ctk.CTkFont(size=14),
       text_color="#888888"
     )
-    self.genai_status_indicator.pack(side="left", padx=(5, 2))
+    self.groq_status_indicator.pack(side="left", padx=(5, 2))
     
     ctk.CTkLabel(settings_row, text=f"v{APP_VERSION}",
            font=ctk.CTkFont(size=10),
@@ -1954,12 +1954,12 @@ class TokoBanApp:
     )
     self.ai_header_title.grid(row=0, column=1, padx=2, pady=5, sticky="w")
     
-    self.genai_status_label = ctk.CTkLabel(
-      header_frame, text=self._get_genai_status_text(),
+    self.groq_status_label = ctk.CTkLabel(
+      header_frame, text=self._get_groq_status_text(),
       font=ctk.CTkFont(size=9),
-      text_color=self._get_genai_status_color()
+      text_color=self._get_groq_status_color()
     )
-    self.genai_status_label.grid(row=0, column=1, padx=2, pady=(22, 2), sticky="w")
+    self.groq_status_label.grid(row=0, column=1, padx=2, pady=(22, 2), sticky="w")
 
     # Header buttons
     settings_ai_btn = ctk.CTkButton(header_frame, text="", width=36, height=36,
@@ -2494,7 +2494,7 @@ class TokoBanApp:
         )
         # Auto-reset after 3 seconds
         self.root.after(3000, lambda: self.active_agent_chip.configure(
-      text="Mixmoi 🐱 siap membantu...",
+          text="Mixmoi 🐱 siap membantu...",
           text_color=COLORS["text_light"],
           fg_color="#f0f0f0"
         ))
@@ -2580,57 +2580,57 @@ class TokoBanApp:
     else:
       messagebox.showerror("Error", message)
 
-  # ─── Gemini Status Helpers ─────────────────────────────────────────
-  def _get_genai_status_text(self) -> str:
-    """Get status text for Gemini connection."""
-    genai_api_key = os.environ.get("GEMINI_API_KEY", "")
-    if self.tools["ai"].genai_configured:
-      return "Connected • Gemini AI"
-    elif genai_api_key:
+    # ─── Groq Status Helpers ──────────────────────────────────────────
+  def _get_groq_status_text(self) -> str:
+    """Get status text for Groq connection."""
+    groq_api_key = os.environ.get("GROQ_API_KEY", "")
+    if self.tools["ai"].groq_configured:
+      return "Connected • Groq AI"
+    elif groq_api_key:
       return "Key set • Not connected"
     else:
       return "No API Key • Click to set"
 
-  def _get_genai_status_color(self) -> str:
-    """Get color for Gemini status label."""
-    if self.tools["ai"].genai_configured:
+  def _get_groq_status_color(self) -> str:
+    """Get color for Groq status label."""
+    if self.tools["ai"].groq_configured:
       return "#aaddaa"
-    elif os.environ.get("GEMINI_API_KEY", ""):
+    elif os.environ.get("GROQ_API_KEY", ""):
       return "#ffdd44"
     else:
       return "#ff8888"
 
-  def _update_genai_status(self):
-    """Update all Gemini status indicators in the UI."""
+  def _update_groq_status(self):
+    """Update all Groq status indicators in the UI."""
     # Update sidebar indicator dot
-    if hasattr(self, 'genai_status_indicator'):
-      if self.tools["ai"].genai_configured:
-        self.genai_status_indicator.configure(text_color="#44dd44", text="●")
-      elif os.environ.get("GEMINI_API_KEY", ""):
-        self.genai_status_indicator.configure(text_color="#ffdd44", text="●")
+    if hasattr(self, 'groq_status_indicator'):
+      if self.tools["ai"].groq_configured:
+        self.groq_status_indicator.configure(text_color="#44dd44", text="●")
+      elif os.environ.get("GROQ_API_KEY", ""):
+        self.groq_status_indicator.configure(text_color="#ffdd44", text="●")
       else:
-        self.genai_status_indicator.configure(text_color="#888888", text="●")
+        self.groq_status_indicator.configure(text_color="#888888", text="●")
 
     # Update AI header label if visible
-    if hasattr(self, 'genai_status_label'):
+    if hasattr(self, 'groq_status_label'):
       try:
-        self.genai_status_label.configure(
-          text=self._get_genai_status_text(),
-          text_color=self._get_genai_status_color()
+        self.groq_status_label.configure(
+          text=self._get_groq_status_text(),
+          text_color=self._get_groq_status_color()
         )
       except Exception:
         pass
 
   # ─── API Settings Dialog ────────────────────────────────────────────
   def _open_api_settings(self):
-    """Open a beautiful settings popup to enter your Gemini API key."""
+    """Open a beautiful settings popup to enter your Groq API key."""
     if not _has_customtkinter:
       self._show_error("Settings dialog requires customtkinter.")
       return
 
     # Create popup window
     popup = ctk.CTkToplevel(self.root)
-    popup.title("API Settings - Gemini AI")
+    popup.title("API Settings - Groq AI")
     popup.geometry("500x420")
     popup.resizable(False, False)
     popup.transient(self.root)
@@ -2651,10 +2651,10 @@ class TokoBanApp:
     header.pack(fill="x")
     header.pack_propagate(False)
 
-    ctk.CTkLabel(header, text="Gemini AI Settings",
+    ctk.CTkLabel(header, text="Groq AI Settings",
           font=ctk.CTkFont(size=20, weight="bold"),
           text_color="white").pack(pady=(15, 2))
-    ctk.CTkLabel(header, text="Connect your app to Google Gemini AI",
+    ctk.CTkLabel(header, text="Connect your app to Groq AI",
           font=ctk.CTkFont(size=11),
           text_color="#aaddaa").pack()
 
@@ -2675,20 +2675,20 @@ class TokoBanApp:
           text_color=COLORS["primary"]).pack(anchor="w")
 
     # Check current status
-    has_key = bool(os.environ.get("GEMINI_API_KEY", ""))
-    is_connected = self.tools["ai"].genai_configured
+    has_key = bool(os.environ.get("GROQ_API_KEY", ""))
+    is_connected = self.tools["ai"].groq_configured
 
     if is_connected:
       status_icon = "Connected"
-      status_text = "Connected! Gemini AI is active."
+      status_text = "Connected! Groq AI is active."
       status_color = COLORS["success"]
     elif has_key:
       status_icon = "Key found"
-      status_text = "API key found but Gemini not initialized."
+      status_text = "API key found but Groq not initialized."
       status_color = COLORS["warning"]
     else:
       status_icon = "No API Key"
-      status_text = "No API key set. Gemini AI is disabled."
+      status_text = "No API key set. Groq AI is disabled."
       status_color = "#d32f2f"
 
     status_label = ctk.CTkLabel(status_inner, text=f"{status_icon} {status_text}",
@@ -2697,19 +2697,19 @@ class TokoBanApp:
     status_label.pack(anchor="w", pady=(5, 0))
 
     # ── API Key Input ──
-    ctk.CTkLabel(body, text="🔐 Your Gemini API Key",
+    ctk.CTkLabel(body, text="🔐 Your Groq API Key",
           font=ctk.CTkFont(size=13, weight="bold"),
           text_color=COLORS["text"]).pack(anchor="w")
 
-    ctk.CTkLabel(body, text="Get your free key at aistudio.google.com → Get API Key",
+    ctk.CTkLabel(body, text="Get your free key at console.groq.com → API Keys",
           font=ctk.CTkFont(size=11),
           text_color=COLORS["text_light"]).pack(anchor="w", pady=(2, 8))
 
     # Entry with paste-friendly design
-    current_key = os.environ.get("GEMINI_API_KEY", "")
+    current_key = os.environ.get("GROQ_API_KEY", "")
     api_entry = ctk.CTkEntry(
       body,
-      placeholder_text="Paste your AIza... API key here",
+      placeholder_text="Paste your gsk_... API key here",
       font=ctk.CTkFont(size=13, family="Consolas"),
       height=42,
       corner_radius=8,
@@ -2726,14 +2726,14 @@ class TokoBanApp:
     link_frame = ctk.CTkFrame(body, fg_color="transparent")
     link_frame.pack(fill="x", pady=(12, 5))
 
-    def open_genai_console():
-      webbrowser.open("https://aistudio.google.com/apikey")
+    def open_groq_console():
+      webbrowser.open("https://console.groq.com/keys")
 
-    ctk.CTkButton(link_frame, text="🌐 Get Free API Key at Google AI Studio",
+    ctk.CTkButton(link_frame, text="🌐 Get Free API Key at Groq Console",
            font=ctk.CTkFont(size=11),
            fg_color="#f0f0f0", text_color=COLORS["primary"],
            hover_color="#e0e0e0",
-           command=open_genai_console,
+           command=open_groq_console,
            height=30, corner_radius=8).pack(fill="x")
 
     # ── Action Buttons ──
@@ -2747,7 +2747,7 @@ class TokoBanApp:
     save_status.pack(pady=(0, 8))
 
     def save_api_key():
-      """Save the API key to .env and reload the Gemini client."""
+      """Save the API key to .env and reload the Groq client."""
       key = api_entry.get().strip()
 
       if not key:
@@ -2757,31 +2757,31 @@ class TokoBanApp:
       try:
         # Save to .env file
         env_path = BASE_DIR / ".env"
-        env_content = f"# Gemini API Key\n# Get your free API key at: https://aistudio.google.com/apikey\nGEMINI_API_KEY={key}\n"
+        env_content = f"# Groq API Key\n# Get your free API key at: https://console.groq.com/keys\nGROQ_API_KEY={key}\n"
         with open(env_path, "w", encoding="utf-8") as f:
           f.write(env_content)
 
         # Update current environment
-        os.environ["GEMINI_API_KEY"] = key
+        os.environ["GROQ_API_KEY"] = key
 
         # Reload the .env file
         load_dotenv(dotenv_path=str(env_path), override=True)
 
-        # Reinitialize Gemini client in AI Command Center
-        success = self.tools["ai"].set_genai_api_key(key)
+        # Reinitialize Groq client in AI Command Center
+        success = self.tools["ai"].set_groq_api_key(key)
 
         # Update UI status
-        self._update_genai_status()
+        self._update_groq_status()
 
         if success:
-          save_status.configure(text="API Key saved & Gemini AI is NOW ACTIVE!",
+          save_status.configure(text="API Key saved & Groq AI is NOW ACTIVE!",
                      text_color=COLORS["success"])
           status_label.configure(
-            text="Connected! Gemini AI is active.",
+            text="Connected! Groq AI is active.",
             text_color=COLORS["success"]
           )
         else:
-          save_status.configure(text="ℹ️ Key saved but Gemini init failed. Check your key.",
+          save_status.configure(text="Key saved but Groq init failed. Check your key.",
                      text_color=COLORS["warning"])
           status_label.configure(
             text="Key saved but connection failed.",
@@ -2795,18 +2795,20 @@ class TokoBanApp:
                    text_color=COLORS["danger"])
 
     def test_connection():
-      """Test the Gemini API connection."""
+      """Test the Groq API connection."""
       key = api_entry.get().strip()
       if not key:
         save_status.configure(text="Enter a key first!", text_color=COLORS["danger"])
         return
 
       try:
-        import google.generativeai as genai
-        genai.configure(api_key=key)
-        model = genai.GenerativeModel("gemini-2.0-flash-lite",
-          generation_config={"max_output_tokens": 10})
-        response = model.generate_content("Say 'ok' in one word")
+        from groq import Groq
+        c = Groq(api_key=key)
+        c.chat.completions.create(
+          model="llama-3.3-70b-versatile",
+          messages=[{"role": "user", "content": "say ok"}],
+          max_tokens=5
+        )
         save_status.configure(text="Connection successful! Key is valid. Now click Save.",
                    text_color=COLORS["success"])
       except Exception as e:
@@ -2838,8 +2840,8 @@ class TokoBanApp:
   # ─── Run ─────────────────────────────────────────────────────────────
   def run(self):
     """Start the application."""
-    # Update Gemini UI status on startup
-    self.root.after(100, self._update_genai_status)
+    # Update Groq UI status on startup
+    self.root.after(100, self._update_groq_status)
     self.root.mainloop()
 
 
