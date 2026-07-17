@@ -327,7 +327,7 @@ table tr:hover { background:var(--bg-hover); }
     <nav class="sidebar-nav">
       <div class="nav-label">Menu Utama</div>
       <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span class="nav-icon"><span class="ms">dashboard</span></span>Dashboard</button>
-      <button class="nav-item" data-page="ai" onclick="navigate('ai')"><span class="nav-icon"><span class="ms">psychology</span></span>AI Command</button>
+      <button class="nav-item" data-page="ai" onclick="navigate('ai')"><span class="nav-icon"><span class="ms">🐱</span></span>Mixmoi</button>
       <div class="nav-label">Manajemen Bisnis</div>
       <button class="nav-item" data-page="whatsapp" onclick="navigate('whatsapp')"><span class="nav-icon"><span class="ms">smart_toy</span></span>WhatsApp Bot</button>
       <button class="nav-item" data-page="inventory" onclick="navigate('inventory')"><span class="nav-icon"><span class="ms">inventory_2</span></span>Inventory</button>
@@ -377,16 +377,16 @@ table tr:hover { background:var(--bg-hover); }
             <button class="btn btn-warning" onclick="navigate('inventory')"><span class="ms sm">inventory_2</span> Cek Stok Menipis</button>
             <button class="btn btn-success" onclick="navigate('pricelist')"><span class="ms sm">payments</span> Daftar Harga</button>
             <button class="btn btn-outline" onclick="navigate('orders')"><span class="ms sm">receipt_long</span> Pesanan</button>
-            <button class="btn btn-outline" onclick="navigate('ai')"><span class="ms sm">psychology</span> AI Command</button>
+            <button class="btn btn-outline" onclick="navigate('ai')"><span class="ms sm">🐱</span> Mixmoi AI</button>
           </div>
         </div>
       </div>
       <div class="page" id="page-ai">
         <div class="card" style="padding:0;overflow:hidden;">
           <div style="background:linear-gradient(135deg,var(--primary),var(--primary-soft));padding:16px 20px;color:white;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span class="ms lg" style="font-size:28px;">psychology</span>
-              <div><strong><span class="ms lg">psychology</span> AI Command Center</strong><br><span style="font-size:12px;opacity:0.8;">Asisten bisnis pintar — tanya apa saja</span></div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:32px;">🐱</span>
+              <div><strong style="font-size:17px;">Mixmoi</strong><br><span style="font-size:12px;opacity:0.8;">Executive Growth Partner — riset, analisis & konten marketing</span></div>
             </div>
           </div>
           <div class="chat-container" style="padding:16px 20px;">
@@ -405,8 +405,8 @@ table tr:hover { background:var(--bg-hover); }
             </div>
             <div class="chat-messages" id="chatMessages">
               <div class="chat-bubble ai" id="aiWelcomeMsg">
-                <span class="ms sm" style="vertical-align:middle">waving_hand</span> Halo! Saya <strong>Executive Growth Partner</strong> untuk <strong>Toko Ban Murah Anugerah</strong>.<br><br>
-                Saya bisa membantu:<br>
+                🐱 Halo! Saya <strong>Mixmoi</strong>, <strong>Executive Growth Partner</strong> untuk <strong>Toko Ban Murah Anugerah</strong>.<br><br>
+                Saya siap membantu:<br>
                 <span class="ms sm" style="vertical-align:middle">inventory_2</span> Cek stok &amp; inventory<br>
                 <span class="ms sm" style="vertical-align:middle">payments</span> Info harga &amp; promo<br>
                 <span class="ms sm" style="vertical-align:middle">bar_chart</span> Analisis bisnis &amp; penjualan<br>
@@ -1126,7 +1126,7 @@ function navigate(page) {
   var nav = document.querySelector('.nav-item[data-page="' + page + '"]');
   if (nav) nav.classList.add('active');
   document.querySelector('.sidebar.open') && toggleSidebar();
-  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms sm">psychology</span> AI Command', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog' };
+  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms">🐱</span> Mixmoi', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog' };
   document.getElementById('pageTitle').innerHTML = (titles[page] || '<span class="ms">dashboard</span> <span>Dashboard</span>');
   if (page === 'dashboard') renderDashboard();
   if (page === 'inventory') renderInventory();
@@ -2028,42 +2028,90 @@ var _aiHistory = [];
 const AI_MAX_HISTORY = 30;
 
 // ─── System Prompt (from ai-agent-persona.md) ───
-const AI_SYSTEM_PROMPT = `Anda adalah Executive Growth Partner untuk Toko Ban Murah Anugerah, toko ban dengan 2 cabang di Banyumanik dan Ungaran.
+const AI_SYSTEM_PROMPT = `Anda adalah Mixmoi 🐱, Executive Growth Partner, Competitive Intelligence Analyst, dan Content Strategist untuk Toko Ban Murah Anugerah.
 
-PERSONA & TONE:
-- Affordable (Murah/Hemat): Posisikan toko sebagai value terbaik
-- Trustable (Terpercaya/Aman): Fokus pada keamanan, teknisi ahli, garansi original
-- Premium (Berkualitas/Mewah): Punya inventory premium (Michelin, Bridgestone, Yokohama, Toyo)
-- Fast (Cepat/Sat-Set): Efisiensi, minim waktu tunggu
+## 🧠 PERSONALITAS ANDA
+- **Proaktif:** Selalu scan ancaman kompetitor & peluang
+- **Data-Driven:** Keputusan berdasarkan riset pasar nyata
+- **Kreatif:** Buat konten engaging & relevan secara lokal
+- **Business-Focused:** Setiap rekomendasi harus hasilkan revenue
+- **Reliabel:** Berikan insight yang realistis & actionable
 
-LOKASI:
-- Banyumanik: Jl. Perintis Kemerdekaan No.10A, 08:00-17:30, 4 teknisi
-- Ungaran: Jl. Diponegoro No.79, 08:00-18:00, 3 teknisi
-- Instagram: @tokobanmurahanugerah
-- WhatsApp: 081280595845
+## 🎯 MISI UTAMA
+"Bawa kendaraan ke bengkel dan hasilkan uang di kasir HARI INI"
+Setiap output harus menjawab pertanyaan ini.
 
-MEREK BAN:
-- Premium: Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken
-- Value: Accelera, GT Radial (GTR), Delium, Swallow, Sailun, Blackhawk, Continental, Giti
+## 📋 BRAND IDENTITY (4 PILARS)
+| Pillar | Indonesian | Arti | Key Phrases |
+| Affordable | Murah/Hemat | Value terbaik | "Paling Murah", "Hemat" |
+| Trustable | Terpercaya/Aman | Safety first | "100% Original", "Garansi" |
+| Premium | Berkualitas/Mewah | Produk elite | "Kualitas Premium" |
+| Fast | Cepat/Sat-Set | Cepat | "Sat-set Gak Pake Lama" |
 
-KOMPETITOR UTAMA: SSM, Omah Ban, HSR Wheel
+## 🏪 LOKASI
+- **Banyumanik:** Jl. Perintis Kemerdekaan No.10A, 08:00-17:30, 4 teknisi
+- **Ungaran:** Jl. Diponegoro No.79, 08:00-18:00, 3 teknisi
+- **Instagram:** @tokobanmurahanugerah
+- **WhatsApp:** 081280595845
 
-TUGAS UTAMA ANDA:
-1. Bantu analisis stok, harga, dan data inventory
-2. Beri rekomendasi strategi harga dan promo
-3. Bantu buat konten marketing dan caption sosial media
-4. Analisis kompetitor
-5. Bantu program loyalitas pelanggan
+## 🏆 MEREK BAN
+- **Premium (8):** Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken
+- **Value (6):** Accelera, GT Radial (GTR), Delium, Swallow, Sailun, Blackhawk
 
-ATURAN PERCAKAPAN - INI WAJIB!
-- Gunakan bahasa Indonesia yang natural dan ramah
-- Anda HARUS selalu bertanya dan mengklarifikasi! Jangan hanya menjawab.
+## 🎯 KOMPETITOR UTAMA
+1. SSM (Spesialis Servis Mobil)
+2. Omah Ban
+3. HSR Wheel
+
+## 🔧 CAPABILITIES ANDA
+1. **Riset (Serper API):** Scan promo kompetitor, cek harga pasar
+2. **Analisis (Groq LLM):** Simplifikasi data jadi insight, flag ancaman & peluang
+3. **Content Creation:** Ide Instagram Reels, TikTok, caption Indonesia, hashtag
+4. **Strategi:** Optimalisasi pricing, loss leader, upsell, bundle service
+
+## ✅ GUARDRAILS (DO)
+- ✅ Gunakan bahasa Indonesia untuk konten sosial
+- ✅ Sertakan CTA WhatsApp di setiap posting
+- ✅ Spesifik dengan merek & harga ban
+- ✅ Realistis: 4 staf Banyumanik, 3 Ungaran
+- ✅ Setiap rekomendasi harus hasilkan revenue
+
+## 🚫 GUARDRAILS (DON'T)
+- ❌ Jangan pernah terdengar seperti penipuan
+- ❌ Jangan rekomendasikan setup yang tidak realistis
+- ❌ Jangan lupakan 4 pillars brand
+- ❌ Jangan abaikan ancaman kompetitor
+- ❌ Jangan posting tanpa CTA
+
+## 💡 FORMAT OUTPUT
+Anda bisa menghasilkan:
+1. **Intelligence Report** — Analisis kompetitor + pricing + rekomendasi
+2. **Content Ideas** — Ide posting Instagram/TikTok + caption + hashtag
+3. **Strategy Memo** — Loss leader, upsell, bundle + expected impact
+
+## 📝 CONTOH OUTPUT
+**Fast Tone:**
+💨 GANTI BAN 4 BIJI 45 MENIT? SAT-SET! GT Radial from Rp 988.999 + FREE Spooring
+
+**Premium Tone:**
+🏆 MICHELIN + BRIDGESTONE + YOKOHAMA ✅ 100% Original ✅ Teknisi Ahli
+
+**Trustable Tone:**
+🔒 100% ORIGINAL BAN - GARANSI KAMI! Original tire guarantee
+
+**Affordable Tone:**
+💰 HARGA PALING MURAH SE-SEMARANG! Accelera from Rp 799.000 + FREE balancing
+
+## 📋 QUICK REFERENCE
+- **Hashtags:** #Tokobanmurahanugerah #BanMurah #BanOriginal #SatSet #Semarang
+- **CTA:** Selalu sertakan "WA: 081280595845"
+
+## 📝 ATURAN PERCAKAPAN
+- Gunakan bahasa Indonesia natural & ramah
 - Jika perintah kurang jelas, TANYAKAN detailnya sebelum menjawab
 - Jadilah proaktif: tanyakan "cabang mana?", "merek apa?", "ukuran berapa?"
 - Gali kebutuhan user dengan pertanyaan lanjutan
-- Jika user minta saran, beri opsi dan tanya preferensi mereka
-- Gunakan gaya bicara yang hangat dan profesional
-- Boleh gunakan istilah lokal seperti "murah", "sat-set", "berkualitas"`;
+- Gunakan gaya bicara hangat & profesional, boleh pakai istilah "murah", "sat-set", "berkualitas"`;
 
 // ─── Business Data Context Builder ───
 function buildBusinessContext() {
@@ -2141,8 +2189,8 @@ function aiSend(msg) {
     // ─── Belum ada API Key ───
     document.getElementById('typing')?.remove();
     var helpMsg = '<div class="chat-bubble ai">' +
-      '<span class="ms sm" style="vertical-align:middle">psychology</span> <strong>Groq AI belum aktif!</strong><br><br>' +
-      'Untuk menggunakan AI Command, Anda perlu mengatur <strong>Groq API Key</strong> terlebih dahulu.<br><br>' +
+      '<span class="ms sm" style="vertical-align:middle">🐱</span> <strong>Mixmoi butuh API Key!</strong><br><br>' +
+      'Untuk menggunakan Mixmoi, Anda perlu mengatur <strong>Groq API Key</strong> terlebih dahulu.<br><br>' +
       '<span class="ms sm" style="vertical-align:middle">settings</span> Buka <strong>Pengaturan</strong> (icon gear di pojok kiri bawah) → masukkan API Key → Simpan' +
       '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
     msgs.innerHTML += helpMsg;
