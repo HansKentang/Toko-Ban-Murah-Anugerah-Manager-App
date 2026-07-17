@@ -1,0 +1,22 @@
+try:
+    import schedule
+    print("Library schedule: TERINSTALL")
+    print()
+    print("Response yang akan muncul di chat AI Command Center:")
+    print()
+    print("=" * 50)
+    print("TIME: Promo otomatis DIJADWALKAN!")
+    print()
+    print("  - Waktu: 09:00")
+    print("  - Interval: setiap hari")
+    print("  - Promo akan dikirim ke semua pelanggan otomatis")
+    print()
+    print("  Scheduler aktif! App harus tetap berjalan.")
+    print("=" * 50)
+    print()
+    print("Ketik 'cek jadwal' untuk lihat daftar jadwal aktif")
+except ImportError:
+    print("Library schedule: BELUM TERINSTALL")
+    print()
+    print("Install dulu: pip install schedule")
+    print("Setelah install, ketik 'jadwal promo jam 09:00' di AI Command Center")

@@ -1,0 +1,31 @@
+{
+  "business": {
+    "name": "Toko Ban Murah Anugerah",
+    "address": "",
+    "city": "",
+    "phone": "",
+    "whatsapp_number": "",
+    "email": "",
+    "website": "",
+    "instagram": "",
+    "facebook": ""
+  },
+  "whatsapp": {
+    "auto_reply_enabled": false,
+    "business_hours_start": "08:00",
+    "business_hours_end": "20:00",
+    "default_reply": "Terima kasih sudah menghubungi Toko Ban Murah Anugerah! Kami akan segera merespon pesan Anda. Ada yang bisa kami bantu?\n\n✅ Stok ban lengkap\n✅ Harga murah\n✅ Garansi resmi\n✅ Gratis pasang"
+  },
+  "inventory": {
+    "low_stock_threshold": 5,
+    "default_supplier": ""
+  },
+  "competitors": {
+    "urls": []
+  },
+  "loyalty": {
+    "points_per_purchase": 10,
+    "points_to_rupiah": 100,
+    "welcome_bonus": 100
+  }
+}

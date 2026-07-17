@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toko Ban Murah Anugerah - Sistem Manajemen Bisnis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,0&display=swap" rel="stylesheet">
+
+<script src="js/products-data.js"></script>
+<style>
+:root {
+    --primary: #003c17; --primary-light: #18542a; --primary-soft: #2E7D32;
+    --primary-fixed: #b2f2b9; --primary-fixed-dim: #97d59f;
+    --secondary: #765a00; --secondary-container: #fdc824; --secondary-fixed: #ffdf95;
+    --danger: #ba1a1a; --warning: #FF8F00; --success: #2E7D32;
+    --dark: #1c1b1b; --text: #1c1b1b; --text-light: #414940; --text-muted: #71796f;
+    --bg: #fcf9f8; --bg-card: #ffffff; --bg-sidebar: #003c17;
+    --bg-hover: #e8f5e9; --border: #c0c9bd; --border-light: #e5e2e1;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06); --shadow-hover: 0 8px 24px rgba(0,0,0,0.10);
+    --radius: 16px; --radius-sm: 10px; --radius-xs: 6px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--text);
+    line-height:1.6; overflow:hidden; height:100vh;
+    -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--primary-soft); }
+.app-layout { display:flex; height:100vh; overflow:hidden; }
+
+.ms { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:20px; line-height:1; letter-spacing:normal; text-transform:none; display:inline-block; white-space:nowrap; word-wrap:normal; direction:ltr; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20; vertical-align:middle; }
+.ms.fill { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; }
+.ms.sm { font-size:16px; }
+.ms.lg { font-size:24px; }
+.ms.xl { font-size:30px; } .ms.icon-26 { font-size:26px; }
+.ms.icon-26 { font-size:26px; }
+
+.sidebar {
+    width:260px;
+    background:linear-gradient(180deg,#003c17 0%,#18542a 100%);
+    display:flex; flex-direction:column; flex-shrink:0; position:fixed; top:0; left:0; height:100vh; z-index:100;
+    transition:var(--transition); border-right:1px solid rgba(255,255,255,0.05);
+}
+.sidebar-brand { padding:24px 20px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.08); position:relative; overflow:hidden; }
+.sidebar-brand::after { content:''; position:absolute; bottom:0; left:10%; right:10%; height:2px; background:linear-gradient(90deg,transparent,var(--secondary-container),transparent); border-radius:2px; }
+.sidebar-brand .brand-logo { width:48px; height:48px; margin:0 auto 8px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(253,200,36,0.3); }
+.sidebar-brand .brand-logo .ms { color:var(--secondary-container); font-size:26px; }
+.sidebar-brand h1 { color:white; font-size:16px; font-weight:700; letter-spacing:-0.3px; }
+.sidebar-brand p { color:rgba(255,255,255,0.45); font-size:11px; margin-top:2px; }
+.sidebar-nav { flex:1; overflow:visible; padding:12px 10px; }
+.sidebar-nav .nav-label { color:rgba(255,255,255,0.3); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:1.2px; padding:12px 12px 6px; }
+.nav-item { display:flex; align-items:center; gap:12px; padding:10px 14px; margin:2px 0; border-radius:var(--radius-sm); color:rgba(255,255,255,0.65); cursor:pointer; transition:var(--transition); font-size:13px; font-weight:500; text-decoration:none; border:none; background:none; width:100%; text-align:left; font-family:inherit; }
+.nav-item:hover { background:rgba(255,255,255,0.08); color:white; }
+.nav-item.active { background:rgba(253,200,36,0.12); color:var(--secondary-container); box-shadow:inset 3px 0 0 var(--secondary-container); }
+.nav-item .nav-icon { font-size:20px; width:24px; text-align:center; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.nav-item .nav-badge { margin-left:auto; background:var(--danger); color:white; font-size:10px; padding:1px 7px; border-radius:10px; font-weight:600; }
+.sidebar-footer { padding:14px 16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; }
+.sidebar-footer .status-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; flex-shrink:0; animation:pulse-dot 2s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.sidebar-footer .version { color:rgba(255,255,255,0.35); font-size:11px; }
+.sidebar-footer-spacer { flex:1; }
+.sidebar-settings-btn { width:28px; height:28px; border-radius:8px; border:none; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition); flex-shrink:0; }
+.sidebar-settings-btn:hover { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.8); transform:rotate(30deg); }
+.sidebar-settings-btn .ms { font-size:16px; }
+
+.main-content { flex:1; display:flex; flex-direction:column; overflow:hidden; background:var(--bg); margin-left:260px; }
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; background:white; border-bottom:1px solid var(--border-light); flex-shrink:0; }
+.topbar .page-title { font-size:18px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; }
+.topbar .page-title .ms { font-size:22px; color:var(--primary-soft); }
+.topbar .page-title span { color:var(--text-light); font-weight:400; font-size:16px; }
+.topbar .topbar-actions { display:flex; align-items:center; gap:8px; }
+.topbar .topbar-actions .action-btn { width:36px; height:36px; border-radius:50%; border:1px solid var(--border-light); background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:var(--transition); color:var(--text-light); }
+.topbar .topbar-actions .action-btn:hover { border-color:var(--primary); color:var(--primary); background:var(--bg-hover); transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,60,23,0.08); }
+
+/* === Cabang Switcher === */
+.cabang-switcher { display:flex; align-items:center; gap:4px; background:var(--bg); border-radius:100px; padding:3px; border:1px solid var(--border-light); }
+.cabang-btn { padding:5px 14px; border-radius:100px; border:none; background:transparent; font-size:12px; font-weight:400; cursor:pointer; transition:var(--transition); font-family:'Inter',system-ui,sans-serif; color:var(--text-muted); white-space:nowrap; }
+.cabang-btn:hover { color:var(--text-light); }
+.cabang-btn.active { background:white; color:var(--primary); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+.cabang-btn .cabang-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+.cabang-btn .cabang-dot.byk { background:#2E7D32; }
+.cabang-btn .cabang-dot.ung { background:#FF8F00; }
+.page-content { flex:1; overflow-y:auto; padding:24px 28px; }
+.page { display:none; }
+.page.active { display:block; animation:fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+.card { background:var(--bg-card); border-radius:var(--radius); box-shadow:0 1px 3px rgba(0,0,0,0.04); padding:24px; margin-bottom:20px; border:1px solid rgba(0,0,0,0.04); transition:var(--transition); }
+.card:hover { box-shadow:var(--shadow); }
+.card-title { font-size:15px; font-weight:600; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.card-title .ms { color:var(--primary-soft); font-size:18px; }
+
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+.stat-card { background:white; border-radius:var(--radius); padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.04); transition:var(--transition); cursor:default; position:relative; overflow:hidden; }
+.stat-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:3px; }
+.stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.stat-card .stat-icon { margin-bottom:10px; display:flex; align-items:center; }
+.stat-card .stat-icon .ms { font-size:26px; }
+.stat-card .stat-value { font-size:26px; font-weight:800; color:var(--primary); letter-spacing:-0.5px; }
+.stat-card .stat-label { font-size:12px; color:var(--text-light); margin-top:2px; font-weight:500; }
+.stat-card.accent-green::before { background:var(--primary-soft); }
+.stat-card.accent-gold::before { background:var(--secondary-container); }
+.stat-card.accent-red::before { background:var(--danger); }
+.stat-card.accent-blue::before { background:#1976D2; }
+.stat-card.accent-purple::before { background:#7B1FA2; }
+.stat-card.accent-orange::before { background:var(--warning); }
+
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+.grid-4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+@media (max-width:900px) { .grid-2,.grid-3 { grid-template-columns:1fr; } }
+
+.btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; transition:var(--transition); border:none; font-family:inherit; text-decoration:none; }
+.btn:active { transform:scale(0.96); }
+.btn-primary { background:var(--primary-soft); color:white; }
+.btn-primary:hover { background:var(--primary); box-shadow:0 4px 12px rgba(46,125,50,0.25); }
+.btn-success { background:var(--success); color:white; }
+.btn-success:hover { background:#1B5E20; box-shadow:0 4px 12px rgba(46,125,50,0.25); }
+.btn-danger { background:var(--danger); color:white; }
+.btn-danger:hover { background:#991111; }
+.btn-warning { background:var(--secondary-container); color:#594400; }
+.btn-warning:hover { background:#f4bf18; }
+.btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--primary); }
+.btn-outline:hover { border-color:var(--primary); background:var(--bg-hover); }
+.btn-sm { padding:6px 14px; font-size:12px; }
+.btn-lg { padding:14px 28px; font-size:15px; }
+.btn-full { width:100%; justify-content:center; }
+.btn .ms { font-size:18px; }
+.btn-sm .ms { font-size:16px; }
+
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:12px; font-weight:600; color:var(--text-light); margin-bottom:5px; }
+.form-input,.form-select,.form-textarea { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:inherit; transition:var(--transition); background:white; color:var(--text); }
+.form-input:focus,.form-select:focus,.form-textarea:focus { outline:none; border-color:var(--primary-soft); box-shadow:0 0 0 3px rgba(46,125,50,0.12); }
+.form-textarea { min-height:100px; resize:vertical; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-search { position:relative; }
+.form-search input { padding-left:38px; }
+.form-search .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); display:flex; }
+
+.table-container { overflow-x:auto; border-radius:10px; border:1px solid var(--border-light); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+table th { background:#f6f3f2; padding:12px 14px; text-align:left; font-weight:600; color:var(--primary); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border-light); }
+table td { padding:10px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+table tr:hover { background:var(--bg-hover); }
+
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-success { background:#d4edda; color:#155724; }
+.badge-warning { background:#fff3cd; color:#856404; }
+.badge-danger { background:#f8d7da; color:#721c24; }
+
+.empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+.empty-state .empty-icon { margin-bottom:12px; }
+.empty-state .empty-icon .ms { font-size:44px; color:var(--border); }
+.empty-state h3 { font-size:16px; color:var(--text-light); margin-bottom:6px; font-weight:600; }
+.empty-state p { font-size:13px; }
+
+.toast-container { position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+.toast { padding:14px 20px; border-radius:10px; color:white; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,0.15); animation:slideUp 0.3s ease; display:flex; align-items:center; gap:8px; max-width:380px; }
+.toast-success { background:var(--primary-soft); }
+.toast-error { background:var(--danger); }
+.toast-warning { background:var(--warning); }
+.toast-info { background:#1976D2; }
+.toast-removing { animation:fadeOut 0.3s ease forwards; }
+@keyframes fadeOut { to{opacity:0;transform:translateX(20px)} }
+
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; display:none; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:white; border-radius:var(--radius); width:90%; max-width:540px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.15); animation:slideUp 0.3s ease; }
+.modal-header { padding:20px 24px; border-bottom:1px solid var(--border-light); display:flex; align-items:center; justify-content:space-between; }
+.modal-header h3 { font-size:17px; color:var(--primary); display:flex; align-items:center; gap:8px; }
+.modal-close { width:32px; height:32px; border-radius:50%; border:none; background:#f0f0f0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition); color:var(--text-light); }
+.modal-close:hover { background:#e0e0e0; color:var(--text); }
+.modal-body { padding:20px 24px; }
+.modal-footer { padding:16px 24px; border-top:1px solid var(--border-light); display:flex; gap:10px; justify-content:flex-end; }
+
+.chat-container { display:flex; flex-direction:column; height:calc(100vh - 140px); }
+.chat-messages { flex:1; overflow-y:auto; padding:16px 0; display:flex; flex-direction:column; gap:8px; }
+.chat-bubble { max-width:80%; padding:12px 18px; border-radius:18px; font-size:13px; line-height:1.6; animation:slideUp 0.3s ease; white-space:pre-wrap; }
+.chat-bubble.user { background:#dcf8c6; align-self:flex-end; border-bottom-right-radius:4px; }
+.chat-bubble.ai { background:white; align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04); }
+.chat-bubble .chat-ts { font-size:10px; color:var(--text-muted); margin-top:4px; text-align:right; }
+.chat-input-area { display:flex; gap:8px; padding:12px 0; }
+.chat-input-area .chat-input { flex:1; padding:12px 18px; border:1.5px solid var(--border-light); border-radius:24px; font-size:14px; font-family:inherit; transition:var(--transition); }
+.chat-input:focus { outline:none; border-color:var(--primary-soft); box-shadow:0 0 0 3px rgba(46,125,50,0.1); }
+.chat-send-btn { width:44px; height:44px; border-radius:50%; border:none; background:var(--primary-soft); color:white; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.chat-send-btn:hover { background:var(--primary); transform:scale(1.05); }
+
+.brand-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:16px; }
+.brand-card { background:white; border-radius:var(--radius); border:1.5px solid var(--border-light); padding:20px 16px; cursor:pointer; transition:var(--transition); text-align:center; position:relative; overflow:hidden; }
+.brand-card:hover { transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--primary-soft); }
+.brand-card:active { transform:translateY(0) scale(0.97); }
+.brand-card .bc-avatar { width:100px; height:72px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; }
+.brand-card .bc-avatar img { width:100%; height:100%; object-fit:contain; }
+.idh-avatar { width:64px; height:48px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.idh-avatar img { width:100%; height:100%; object-fit:contain; }
+.brand-card .bc-name { font-size:15px; font-weight:700; color:var(--text); }
+.brand-card .bc-stats { font-size:11px; color:var(--text-light); margin-top:4px; }
+.brand-card .bc-tier { display:inline-block; font-size:9px; font-weight:700; padding:1px 8px; border-radius:10px; margin-top:4px; }
+.brand-card-zero { opacity:0.55; border-style:dashed; background:var(--bg); }
+.brand-card-zero:hover { opacity:0.75; }
+.bc-avatar-dark { background:#1a1a2e; border-radius:8px; }
+.bc-pin { position:absolute; top:8px; right:8px; width:20px; height:20px; display:flex; align-items:center; justify-content:center; }
+.model-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
+.model-card { background:white; border-radius:var(--radius-sm); border:1.5px solid var(--border-light); padding:14px; cursor:pointer; transition:var(--transition); }
+.model-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); border-color:var(--primary-soft); }
+.model-card .mc-name { font-size:12px; font-weight:700; color:var(--text); }
+.model-card .mc-count { font-size:11px; font-weight:600; color:var(--primary-soft); margin-top:4px; }
+.model-card .mc-price { font-size:11px; color:var(--text-light); margin-top:2px; }
+.inv-breadcrumb { display:flex; align-items:center; gap:8px; padding:10px 14px; background:white; border-radius:var(--radius-sm); margin-bottom:14px; border:1px solid var(--border-light); font-size:13px; }
+.inv-breadcrumb .bc-link { color:var(--primary-soft); cursor:pointer; font-weight:500; }
+.inv-breadcrumb .bc-link:hover { text-decoration:underline; }
+.inv-breadcrumb .bc-current { font-weight:700; color:var(--text); }
+.inv-drill-header { display:flex; align-items:center; gap:12px; padding:14px 18px; background:white; border-radius:var(--radius-sm); border:1px solid var(--border-light); margin-bottom:14px; }
+
+.inv-drill-header .idh-info { flex:1; }
+.inv-drill-header .idh-brand { font-size:18px; font-weight:700; color:var(--text); }
+.inv-drill-header .idh-sub { font-size:12px; color:var(--text-light); }
+.inv-back-btn { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; border-radius:8px; border:1.5px solid var(--border-light); background:white; font-size:12px; font-weight:600; color:var(--primary); cursor:pointer; transition:var(--transition); font-family:inherit; }
+.inv-back-btn:hover { border-color:var(--primary-soft); background:var(--bg-hover); }
+
+.chat-typing { display:flex; gap:4px; padding:8px 16px; background:white; border-radius:18px; align-self:flex-start; box-shadow:var(--shadow); }
+.chat-typing span { width:8px; height:8px; border-radius:50%; background:var(--text-muted); animation:typingBounce 1.4s infinite; }
+.chat-typing span:nth-child(2) { animation-delay:0.2s; }
+.chat-typing span:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+.chat-quick-actions { display:flex; gap:6px; flex-wrap:wrap; padding-bottom:8px; }
+.chat-quick-btn { padding:6px 14px; border-radius:16px; border:1px solid var(--border-light); background:white; font-size:12px; cursor:pointer; transition:var(--transition); font-family:inherit; color:var(--text-light); }
+.chat-quick-btn:hover { border-color:var(--primary-soft); background:var(--bg-hover); color:var(--primary); }
+
+.sidebar-toggle { display:none; background:none; border:none; cursor:pointer; color:var(--primary); padding:4px; align-items:center; }
+.sidebar-toggle .ms { font-size:24px; }
+@media (max-width:768px) {
+    .sidebar { position:fixed; left:-280px; top:0; bottom:0; z-index:200; box-shadow:4px 0 20px rgba(0,0,0,0.2); }
+    .sidebar.open { left:0; }
+    .main-content { margin-left:0; }
+    .sidebar-toggle { display:flex!important; }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:199; }
+    .sidebar-overlay.open { display:block; }
+    .stats-grid { grid-template-columns:1fr 1fr; }
+    .form-row { grid-template-columns:1fr; }
+    .page-content { padding:16px; }
+}
+
+.flex { display:flex; }
+.flex-center { align-items:center; justify-content:center; }
+.gap-2 { gap:8px; } .gap-3 { gap:12px; } .gap-4 { gap:16px; }
+.mt-2 { margin-top:8px; } .mt-3 { margin-top:12px; } .mt-4 { margin-top:16px; }
+.mb-2 { margin-bottom:8px; } .mb-3 { margin-bottom:12px; } .mb-4 { margin-bottom:16px; }
+.text-center { text-align:center; }
+.text-muted { color:var(--text-muted); }
+.text-sm { font-size:12px; }
+.fw-600 { font-weight:600; }
+.w-full { width:100%; }
+.divider { border:none; height:1px; background:var(--border-light); margin:16px 0; }
+.chart-wrapper { position:relative; height:260px; }
+
+/* === Settings Modal === */
+.settings-section { margin-bottom:20px; }
+.settings-section:last-child { margin-bottom:0; }
+.settings-section-title { font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.8px; display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border-light); }
+.settings-section-title .ms { font-size:16px; }
+.settings-row { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface-container-low); border-radius:10px; margin-bottom:6px; }
+.settings-row-label { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+.settings-row-label .ms { font-size:16px; color:var(--primary-soft); }
+.settings-row-desc { font-size:11px; color:var(--text-muted); margin-top:1px; }
+.settings-input { width:200px; padding:7px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:12px; font-family:inherit; transition:var(--transition); background:white; color:var(--text); text-align:right; }
+.settings-input:focus { outline:none; border-color:var(--primary-soft); box-shadow:0 0 0 2px rgba(46,125,50,0.12); }
+.settings-key-input { flex:1; min-width:0; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:12px; font-family:monospace; transition:var(--transition); background:white; color:var(--text); }
+.settings-key-input:focus { outline:none; border-color:var(--primary-soft); box-shadow:0 0 0 2px rgba(46,125,50,0.12); }
+.settings-key-wrap { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface-container-low); border-radius:10px; }
+.settings-key-wrap .settings-key-input { flex:1; }
+.settings-status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.settings-status-dot.green { background:#44dd44; box-shadow:0 0 6px rgba(68,221,68,0.4); }
+.settings-status-dot.yellow { background:#ffdd44; box-shadow:0 0 6px rgba(255,221,68,0.4); }
+.settings-status-dot.gray { background:#888; }
+.settings-groq-info { font-size:11px; color:var(--text-muted); line-height:1.5; padding:0 4px; }
+.close-settings { display:flex; align-items:center; gap:6px; padding:8px 18px; border-radius:100px; background:var(--primary-soft); color:white; border:none; font-size:12px; font-weight:600; cursor:pointer; transition:var(--transition); font-family:inherit; }
+.close-settings:hover { background:var(--primary); box-shadow:0 4px 12px rgba(46,125,50,0.2); }
+.close-settings:active { transform:scale(0.96); }
+.close-settings .ms { font-size:16px; }
+
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo"><span class="ms icon-26">store</span></div>
+      <h1>Toko Ban Murah Anugerah</h1>
+      <p>Sistem Manajemen Bisnis</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Menu Utama</div>
+      <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span class="nav-icon"><span class="ms">dashboard</span></span>Dashboard</button>
+      <button class="nav-item" data-page="ai" onclick="navigate('ai')"><span class="nav-icon"><span class="ms">psychology</span></span>AI Command</button>
+      <div class="nav-label">Manajemen Bisnis</div>
+      <button class="nav-item" data-page="whatsapp" onclick="navigate('whatsapp')"><span class="nav-icon"><span class="ms">smart_toy</span></span>WhatsApp Bot</button>
+      <button class="nav-item" data-page="inventory" onclick="navigate('inventory')"><span class="nav-icon"><span class="ms">inventory_2</span></span>Inventory</button>
+      <button class="nav-item" data-page="pricelist" onclick="navigate('pricelist')"><span class="nav-icon"><span class="ms">payments</span></span>Price List</button>
+      <button class="nav-item" data-page="sales" onclick="navigate('sales')"><span class="nav-icon"><span class="ms">trending_up</span></span>Sales Dashboard</button>
+      <button class="nav-item" data-page="social" onclick="navigate('social')"><span class="nav-icon"><span class="ms">campaign</span></span>Social Media</button>
+      <button class="nav-item" data-page="competitor" onclick="navigate('competitor')"><span class="nav-icon"><span class="ms">manage_search</span></span>Competitor Monitor</button>
+      <button class="nav-item" data-page="orders" onclick="navigate('orders')"><span class="nav-icon"><span class="ms">receipt_long</span></span>Order Manager<span class="nav-badge" id="orderBadge">0</span></button>
+      <button class="nav-item" data-page="loyalty" onclick="navigate('loyalty')"><span class="nav-icon"><span class="ms">star</span></span>Loyalty Program</button>
+      <button class="nav-item" data-page="sheets" onclick="navigate('sheets')"><span class="nav-icon"><span class="ms">description</span></span>Excel Auto</button>
+      <button class="nav-item" data-page="qr" onclick="navigate('qr')"><span class="nav-icon"><span class="ms">qr_code_scanner</span></span>QR Catalog</button>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-settings-btn" onclick="openSettingsModal()" title="Pengaturan"><span class="ms">settings</span></button><span class="sidebar-footer-spacer"></span><span class="status-dot"></span><span class="version">v1.0 · Semua siap</span></div>
+  </aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><span class="ms">menu</span></button>
+        <h2 class="page-title" id="pageTitle"><span class="ms">dashboard</span> <span>Dashboard</span></h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="cabang-switcher" id="cabangSwitcher">
+          <button class="cabang-btn active" data-cabang="all" onclick="setCabang('all')"><span class="cabang-dot" style="background:var(--primary-soft)"></span>Semua</button>
+          <button class="cabang-btn" data-cabang="Banyumanik" onclick="setCabang('Banyumanik')"><span class="cabang-dot byk"></span>Banyumanik</button>
+          <button class="cabang-btn" data-cabang="Ungaran" onclick="setCabang('Ungaran')"><span class="cabang-dot ung"></span>Ungaran</button>
+        </div>
+        <div class="topbar-actions">
+          <button class="action-btn" onclick="resetAllData()" title="Reset Data"><span class="ms">refresh</span></button>
+          <button class="action-btn" onclick="showToast('info','Toko Ban Murah Anugerah v1.0')" title="Info"><span class="ms">info</span></button>
+        </div>
+      </div>
+    </header>
+    <div class="page-content" id="pageContent">
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid" id="dashStats"></div>
+        <div class="grid-2">
+          <div class="card"><div class="card-title"><span class="ms">trending_up</span> Pendapatan 30 Hari</div><div class="chart-wrapper"><canvas id="dashRevenueChart"></canvas></div></div>
+          <div class="card"><div class="card-title"><span class="ms">emoji_events</span> Produk Terlaris</div><div class="chart-wrapper"><canvas id="dashTopChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="ms">bolt</span> Aksi Cepat</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <button class="btn btn-primary" onclick="navigate('whatsapp')"><span class="ms sm">smart_toy</span> Kirim Promo WA</button>
+            <button class="btn btn-warning" onclick="navigate('inventory')"><span class="ms sm">inventory_2</span> Cek Stok Menipis</button>
+            <button class="btn btn-success" onclick="navigate('pricelist')"><span class="ms sm">payments</span> Daftar Harga</button>
+            <button class="btn btn-outline" onclick="navigate('orders')"><span class="ms sm">receipt_long</span> Pesanan</button>
+            <button class="btn btn-outline" onclick="navigate('ai')"><span class="ms sm">psychology</span> AI Command</button>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-ai">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,var(--primary),var(--primary-soft));padding:16px 20px;color:white;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="ms lg" style="font-size:28px;">psychology</span>
+              <div><strong><span class="ms lg">psychology</span> AI Command Center</strong><br><span style="font-size:12px;opacity:0.8;">Asisten bisnis pintar — tanya apa saja</span></div>
+            </div>
+          </div>
+          <div class="chat-container" style="padding:16px 20px;">
+            <div class="chat-quick-actions">
+              <button class="chat-quick-btn" onclick="aiSend('cek stok')"><span class="ms sm">inventory_2</span> Cek Stok</button>
+              <button class="chat-quick-btn" onclick="aiSend('promo random 3')"><span class="ms sm">campaign</span> Random 3</button>
+              <button class="chat-quick-btn" onclick="aiSend('promo gold')"><span class="ms sm">payments</span> Promo Gold</button>
+              <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms sm">bar_chart</span> Status</button>
+              <button class="chat-quick-btn" onclick="aiSend('tips ban')"><span class="ms">lightbulb</span> Tips Ban</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-bubble ai" id="aiWelcomeMsg">
+                <span class="ms sm" style="vertical-align:middle">waving_hand</span> Halo! Saya <strong>Executive Growth Partner</strong> untuk <strong>Toko Ban Murah Anugerah</strong>.<br><br>
+                Saya bisa membantu:<br>
+                <span class="ms sm" style="vertical-align:middle">inventory_2</span> Cek stok &amp; inventory<br>
+                <span class="ms sm" style="vertical-align:middle">payments</span> Info harga &amp; promo<br>
+                <span class="ms sm" style="vertical-align:middle">bar_chart</span> Analisis bisnis &amp; penjualan<br>
+                <span class="ms sm" style="vertical-align:middle">campaign</span> Strategi marketing &amp; konten<br>
+                <span class="ms sm" style="vertical-align:middle">manage_search</span> Intelijen kompetitor<br>
+                <span class="ms sm" style="vertical-align:middle">star</span> Program loyalitas pelanggan
+                <div class="chat-ts">Sekarang</div>
+              </div>
+            </div>
+            <div class="chat-input-area" style="position:relative;">
+              <div id="aiSuggestions" style="position:absolute;bottom:60px;left:0;right:60px;background:white;border-radius:12px;box-shadow:0 -4px 20px rgba(0,0,0,0.1);border:1px solid var(--border);display:none;max-height:180px;overflow-y:auto;z-index:10;"></div>
+              <input class="chat-input" id="chatInput" placeholder="Ketik perintah...">
+              <button class="chat-send-btn" onclick="aiSend()" title="Kirim"><span class="ms">send</span></button>
+              <button class="chat-send-btn" onclick="resetChat()" title="Reset percakapan" style="background:var(--border);width:36px;height:36px;"><span class="ms" style="font-size:18px;">refresh</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-whatsapp">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="ms">send</span> Kirim Pesan</div>
+            <div class="form-group"><label>Nomor Telepon</label><input class="form-input" id="waPhone" placeholder="08123456789"></div>
+            <div class="form-group">
+              <label>Template</label>
+              <select class="form-select" id="waTemplate" onchange="waUpdatePreview()">
+                <option value="promo">Promo</option><option value="halo">Salam</option>
+                <option value="harga">Harga</option><option value="lokasi">Lokasi</option>
+                <option value="stok">Stok</option><option value="terima_kasih">Terima Kasih</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Preview</label><textarea class="form-textarea" id="waPreview" rows="6" readonly></textarea></div>
+            <button class="btn btn-primary btn-full" onclick="waSend()"><span class="ms sm">send</span> Kirim</button>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="ms">campaign</span> Promo Blast</div>
+            <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Kirim promo ke semua pelanggan</p>
+            <button class="btn btn-success btn-full mb-3" onclick="waBlast()"><span class="ms sm">campaign</span> Kirim ke Semua</button>
+            <hr class="divider">
+            <div class="card-title"><span class="ms">book</span> Template</div>
+            <div id="waTemplateList" style="font-size:13px;line-height:1.8;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-inventory">
+        <div class="stats-grid" id="invStats"></div>
+        <div class="card" style="padding:18px 20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div class="card-title" style="margin:0;font-size:15px;"><span class="ms">inventory_2</span> <span id="invDrillTitle">Data Ban per Merek</span></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" onclick="showAddProductModal()"><span class="ms sm">add</span> Produk Baru</button>
+              <button class="btn btn-warning btn-sm" onclick="showLowStock()"><span class="ms sm">warning</span> Stok Menipis</button>
+            </div>
+          </div>
+          <div id="invBreadcrumb" style="display:none;"></div>
+          <div class="form-search mb-3">
+            <span class="search-icon"><span class="ms">search</span></span>
+            <input class="form-input" id="invSearch" placeholder="Cari merek, seri, atau ukuran..." oninput="invSearchFilter()">
+          </div>
+          <div id="invContent"></div>
+        </div>
+      </div>
+      <div class="page" id="page-pricelist">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="ms">description</span> Daftar Harga Teks</div>
+            <button class="btn btn-primary mb-3" onclick="genPriceText()"><span class="ms sm">edit_note</span> Generate</button>
+            <textarea class="form-textarea" id="plTextPreview" rows="12" readonly placeholder="Klik generate..."></textarea>
+            <button class="btn btn-outline mt-2 btn-full" onclick="copyText('plTextPreview')"><span class="ms sm">content_copy</span> Copy</button>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="ms">image</span> Promo Flyer</div>
+            <div class="form-group"><label>Teks</label><input class="form-input" id="flyerText" value="PROMO SPESIAL! Diskon 20%"></div>
+            <div class="form-group"><label>Harga Mulai</label><input class="form-input" id="flyerPrice" value="Mulai Rp 350rb"></div>
+            <button class="btn btn-warning btn-full" onclick="genFlyer()"><span class="ms sm">image</span> Generate Flyer</button>
+            <div id="flyerPreview" class="mt-3 text-center" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title"><span class="ms">inventory_2</span> Produk</div><div class="table-container" id="plProducts"></div></div>
+      </div>
+      <div class="page" id="page-sales">
+        <div class="stats-grid" id="salesStats"></div>
+        <div class="grid-2">
+          <div class="card"><div class="card-title"><span class="ms">trending_up</span> Pendapatan Harian</div><div class="chart-wrapper"><canvas id="salesRevenueChart"></canvas></div></div>
+          <div class="card"><div class="card-title"><span class="ms">emoji_events</span> Produk Terlaris</div><div class="chart-wrapper"><canvas id="salesTopChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="ms">description</span> Laporan Penjualan</div>
+          <button class="btn btn-primary mb-3" onclick="genSalesReport()"><span class="ms sm">bar_chart</span> Generate</button>
+          <textarea class="form-textarea" id="salesReportText" rows="10" readonly></textarea>
+          <button class="btn btn-outline mt-2" onclick="copyText('salesReportText')"><span class="ms sm">content_copy</span> Copy</button>
+        </div>
+      </div>
+      <div class="page" id="page-social">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="ms">edit</span> Generator Caption</div>
+            <div class="form-group">
+              <label>Template</label>
+              <select class="form-select" id="socialTemplate">
+                <option value="promo_harga">Promo Harga</option><option value="new_stock">Stok Baru</option>
+                <option value="tips_ban">Tips Ban</option><option value="testimoni">Testimoni</option>
+                <option value="produk_unggulan">Unggulan</option><option value="hari_libur">Info</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-full mb-3" onclick="genCaption()"><span class="ms sm">edit</span> Generate</button>
+            <textarea class="form-textarea" id="socialCaption" rows="8" readonly></textarea>
+            <button class="btn btn-outline mt-2 btn-full" onclick="copyText('socialCaption')"><span class="ms sm">content_copy</span> Copy</button>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="ms">calendar_month</span> Rencana 7 Hari</div>
+            <button class="btn btn-success btn-full mb-3" onclick="genContentPlan()"><span class="ms sm">calendar_month</span> Generate</button>
+            <div id="socialPlan"></div>
+            <hr class="divider">
+            <div class="card-title"><span class="ms">lightbulb</span> Tips Ban</div>
+            <button class="btn btn-warning btn-full" onclick="genTip()"><span class="ms sm">lightbulb</span> Acak</button>
+            <div id="socialTip" class="mt-3 text-muted text-sm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-competitor">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="ms">manage_search</span> Cek Kompetitor</div>
+            <div class="form-group"><label>Cari Produk</label><input class="form-input" id="compQuery" value="Michelin 185/65R14"></div>
+            <button class="btn btn-primary btn-full" onclick="searchCompetitors()"><span class="ms sm">search</span> Cari</button>
+            <div id="compResults" class="mt-3"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="ms">bar_chart</span> Perbandingan</div>
+            <div class="chart-wrapper"><canvas id="compChart"></canvas></div>
+            <p class="text-sm text-muted text-center mt-2">*Data demo</p>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-orders">
+        <div class="stats-grid" id="orderStats"></div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+            <div class="card-title" style="margin:0;"><span class="ms">receipt_long</span> Daftar Pesanan</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" onclick="addSampleOrders()"><span class="ms sm">add</span> Sample</button>
+              <button class="btn btn-primary btn-sm" onclick="showAddOrderModal()"><span class="ms sm">add_circle</span> Baru</button>
+              <button class="btn btn-warning btn-sm" onclick="showPendingOrders()"><span class="ms sm">hourglass_empty</span> Pending</button>
+            </div>
+          </div>
+          <div class="table-container" id="orderTableContainer"></div>
+        </div>
+      </div>
+      <div class="page" id="page-loyalty">
+        <div class="grid-4" id="tierCards"></div>
+        <div class="card">
+          <div class="card-title"><span class="ms">people</span> Pelanggan</div>
+          <button class="btn btn-success btn-sm mb-3" onclick="addSampleCustomers()"><span class="ms sm">add</span> Sample</button>
+          <div class="table-container" id="loyaltyTableContainer"></div>
+        </div>
+      </div>
+      <div class="page" id="page-sheets">
+        <div class="grid-2">
+          <div class="card"><div class="card-title"><span class="ms">bar_chart</span> Laporan Excel</div><button class="btn btn-primary btn-full" onclick="exportSalesReport()"><span class="ms sm">download</span> Download</button></div>
+          <div class="card"><div class="card-title"><span class="ms">book</span> Katalog Excel</div><button class="btn btn-success btn-full" onclick="exportCatalog()"><span class="ms sm">download</span> Download</button></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="ms">summarize</span> Ringkasan Harian</div>
+          <button class="btn btn-primary mb-3" onclick="genDailySummary()"><span class="ms sm">summarize</span> Generate</button>
+          <textarea class="form-textarea" id="dailySummaryText" rows="10" readonly></textarea>
+          <button class="btn btn-outline mt-2" onclick="copyText('dailySummaryText')"><span class="ms sm">content_copy</span> Copy</button>
+        </div>
+      </div>
+      <div class="page" id="page-qr">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="ms">qr_code_scanner</span> Katalog QR</div>
+            <button class="btn btn-primary btn-full mb-3" onclick="genQRCatalog()"><span class="ms sm">qr_code</span> Generate</button>
+            <div id="qrCatalogPreview"><div class="empty-state"><div class="empty-icon"><span class="ms xl">qr_code_scanner</span></div><h3>Klik tombol di atas</h3><p>Untuk melihat katalog digital</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="ms">bar_chart</span> Statistik</div>
+            <div class="stats-grid" id="qrStats"></div>
+            <hr class="divider">
+            <div class="card-title"><span class="ms">lightbulb</span> Cara Kerja</div>
+            <div style="font-size:13px;line-height:2;">
+              <div><span class="ms sm">smart_button</span> Klik Generate Katalog</div>
+              <div><span class="ms sm">content_copy</span> Copy link yang muncul</div>
+              <div><span class="ms sm">share</span> Bagikan ke pelanggan</div>
+              <div><span class="ms sm">print</span> Bisa juga cetak QR code</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<div class="modal-overlay" id="addProductModal">
+  <div class="modal">
+    <div class="modal-header"><h3><span class="ms">add_circle</span> Tambah Produk</h3><button class="modal-close" onclick="closeModal('addProductModal')"><span class="ms">close</span></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Merek</label><input class="form-input" id="prodMerek"></div>
+        <div class="form-group"><label>Tipe</label><input class="form-input" id="prodTipe"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Ukuran</label><input class="form-input" id="prodUkuran"></div>
+        <div class="form-group"><label>Ring</label><input class="form-input" id="prodRing"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Harga Beli</label><input class="form-input" id="prodHargaBeli" type="number"></div>
+        <div class="form-group"><label>Harga Jual</label><input class="form-input" id="prodHargaJual" type="number"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Stok</label><input class="form-input" id="prodStok" type="number"></div>
+        <div class="form-group"><label>Kategori</label>
+          <select class="form-select" id="prodKategori">
+            <option>Ban Mobil</option><option>Ban Motor</option><option>Ban Truk</option><option>Ban SUV</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Cabang</label>
+        <select class="form-select" id="prodCabang">
+          <option value="Banyumanik">Banyumanik</option>
+          <option value="Ungaran">Ungaran</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addProductModal')">Batal</button>
+      <button class="btn btn-primary" onclick="addProduct()"><span class="ms sm">save</span> Simpan</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="addOrderModal">
+  <div class="modal">
+    <div class="modal-header"><h3><span class="ms">add_circle</span> Tambah Pesanan</h3><button class="modal-close" onclick="closeModal('addOrderModal')"><span class="ms">close</span></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Nama</label><input class="form-input" id="orderNama"></div>
+        <div class="form-group"><label>Telepon</label><input class="form-input" id="orderTelp"></div>
+      </div>
+      <div class="form-group"><label>Produk</label><input class="form-input" id="orderProduk"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Jumlah</label><input class="form-input" id="orderJumlah" type="number" value="2"></div>
+        <div class="form-group"><label>Total</label><input class="form-input" id="orderTotal" type="number"></div>
+      </div>
+      <div class="form-group"><label>Cabang</label>
+        <select class="form-select" id="orderCabang">
+          <option value="Banyumanik">Banyumanik</option>
+          <option value="Ungaran">Ungaran</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addOrderModal')">Batal</button>
+      <button class="btn btn-primary" onclick="addOrder()"><span class="ms sm">save</span> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <h3><span class="ms">settings</span> Pengaturan Sistem</h3>
+      <button class="modal-close" onclick="closeModal('settingsModal')"><span class="ms">close</span></button>
+    </div>
+    <div class="modal-body">
+      <!-- Groq AI Section -->
+      <div class="settings-section">
+        <div class="settings-section-title"><span class="ms">psychology</span> AI & Groq</div>
+        <div class="settings-key-wrap">
+          <span id="settingsGroqDot" class="settings-status-dot gray"></span>
+          <input class="settings-key-input" id="settingsGroqKey" type="password" placeholder="Masukkan Groq API Key...">
+          <button class="btn btn-sm btn-outline" onclick="saveGroqKey()" style="white-space:nowrap;"><span class="ms sm">save</span> Simpan</button>
+          <button class="btn btn-sm btn-success" onclick="testGroqKey()" style="white-space:nowrap;"><span class="ms sm">check_circle</span> Test</button>
+        </div>
+        <div class="settings-groq-info" style="margin-top:8px;">
+          <span id="settingsGroqStatus"><span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Groq AI tidak aktif</span>
+        </div>
+        <div style="margin-top:6px;">
+          <div class="settings-row">
+            <div class="settings-row-label"><span class="ms">smart_toy</span> Model AI</div>
+            <select class="settings-input" id="settingsGroqModel" style="width:auto;text-align:left;">
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B (Cepat)</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Akurat)</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bisnis Section -->
+      <div class="settings-section">
+        <div class="settings-section-title"><span class="ms">store</span> Informasi Bisnis</div>
+        <div class="settings-row">
+          <div class="settings-row-label"><span class="ms">badge</span> Nama Toko</div>
+          <input class="settings-input" id="settingsStoreName" value="Toko Ban Murah Anugerah">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-label"><span class="ms">call</span> Telepon</div>
+          <input class="settings-input" id="settingsPhone" placeholder="08123456789">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-label"><span class="ms">chat</span> WhatsApp</div>
+          <input class="settings-input" id="settingsWa" placeholder="08123456789">
+        </div>
+      </div>
+
+      <!-- WhatsApp Section -->
+      <div class="settings-section">
+        <div class="settings-section-title"><span class="ms">smart_toy</span> WhatsApp Auto-Reply</div>
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <span class="ms">toggle_on</span> Aktifkan Auto-Reply
+            <div class="settings-row-desc">Balas otomatis di luar jam kerja</div>
+          </div>
+          <label class="toggle-wrap" style="margin-left:auto;" onclick="this.querySelector('.toggle-track').classList.toggle('active');saveSettingsField('autoReply',this.querySelector('.toggle-track').classList.contains('active'))">
+            <div class="toggle-track" id="settingsAutoReply"><div class="toggle-knob"></div></div>
+          </label>
+        </div>
+        <div class="form-row" style="margin-top:8px;">
+          <div class="form-group">
+            <label>Jam Buka</label>
+            <input class="form-input" id="settingsHoursStart" type="time" value="08:00">
+          </div>
+          <div class="form-group">
+            <label>Jam Tutup</label>
+            <input class="form-input" id="settingsHoursEnd" type="time" value="20:00">
+          </div>
+        </div>
+      </div>
+
+      <!-- Stok & Sistem Section -->
+      <div class="settings-section">
+        <div class="settings-section-title"><span class="ms">inventory_2</span> Stok & Sistem</div>
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <span class="ms">exclamation</span> Batas Stok Menipis
+            <div class="settings-row-desc">Peringatan saat stok di bawah jumlah ini</div>
+          </div>
+          <input class="settings-input" id="settingsLowStock" type="number" value="5" style="width:70px;">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <span class="ms">dataset</span> Data Produk
+            <div class="settings-row-desc">Total produk di database</div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:var(--primary);" id="settingsProdCount">0</span>
+        </div>
+      </div>
+
+      <!-- Info Cabang Section -->
+      <div class="settings-section">
+        <div class="settings-section-title"><span class="ms">location_on</span> Info Cabang</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:#f0f9f0;border-radius:10px;padding:12px;">
+            <div style="font-size:13px;font-weight:500;color:#2E7D32;margin-bottom:6px;"><span class="cabang-dot byk" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#2E7D32;"></span> Banyumanik</div>
+            <div style="font-size:11px;color:var(--text-light);line-height:1.6;">
+              Jl. Perintis Kemerdekaan No.10A<br>
+              08:00 - 17:30<br>
+              4 Teknisi
+            </div>
+          </div>
+          <div style="background:#fff8e8;border-radius:10px;padding:12px;">
+            <div style="font-size:13px;font-weight:500;color:#E65100;margin-bottom:6px;"><span class="cabang-dot ung" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#FF8F00;"></span> Ungaran</div>
+            <div style="font-size:11px;color:var(--text-light);line-height:1.6;">
+              Jl. Diponegoro No.79<br>
+              08:00 - 18:00<br>
+              3 Teknisi
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <span style="font-size:11px;color:var(--text-muted);">Perubahan tersimpan otomatis</span>
+      <button class="close-settings" onclick="closeModal('settingsModal')"><span class="ms">check</span> Selesai</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ DATA LAYER ═══
+const DB_KEY = 'tokoBanData';
+const PROD_MODS_KEY = 'tokoBanProdMods';
+const DATA_VERSION = 3;
+
+function getDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)); }
+  catch(e){} return null;
+}
+
+function saveDB(db) {
+  var toSave = {
+    initialized: true, dataVersion: DATA_VERSION,
+    sales: db.sales || [], orders: db.orders || [], customers: db.customers || [],
+    competitorHistory: db.competitorHistory || [],
+    socialPosts: db.socialPosts || [], priceHistory: db.priceHistory || []
+  };
+  try {
+    localStorage.setItem(DB_KEY, JSON.stringify(toSave));
+  } catch (e) {
+    // Quota exceeded — keep only most recent data
+    toSave.sales = (db.sales || []).slice(-15);
+    toSave.orders = (db.orders || []).slice(-10);
+    toSave.customers = (db.customers || []).slice(-20);
+    try {
+      localStorage.setItem(DB_KEY, JSON.stringify(toSave));
+    } catch (e2) {
+      // Still too large — save minimal
+      localStorage.setItem(DB_KEY, JSON.stringify({ initialized: true, dataVersion: DATA_VERSION, sales: [], orders: [], customers: [] }));
+    }
+  }
+}
+
+function getProdMods() {
+  try {
+    var val = JSON.parse(localStorage.getItem(PROD_MODS_KEY));
+    if (val && typeof val === 'object' && !Array.isArray(val)) return val;
+  } catch(e){}
+  return { added: [], edited: [], deleted: {} };
+}
+
+function saveProdMods(mods) {
+  try {
+    localStorage.setItem(PROD_MODS_KEY, JSON.stringify(mods));
+  } catch (e) {
+    // Quota exceeded — clear old mods and retry
+    try {
+      localStorage.setItem(PROD_MODS_KEY, JSON.stringify({ added: [], edited: [], deleted: {} }));
+    } catch (e2) {}
+  }
+}
+
+// Current active cabang filter (all, Banyumanik, Ungaran)
+var _activeCabang = 'all';
+
+function getCabangFiltered(products) {
+  if (_activeCabang === 'all') return products;
+  return products.filter(function(p){ return p.cabang === _activeCabang; });
+}
+
+function getProducts() {
+  var base = [];
+  if (typeof FULL_PRODUCTS_DATA !== 'undefined' && FULL_PRODUCTS_DATA.length > 0) {
+    FULL_PRODUCTS_DATA.forEach(function(p){ 
+      var obj = Object.assign({}, p);
+      // Migrate: add cabang field if missing (even IDs → Banyumanik, odd → Ungaran)
+      if (!obj.cabang) {
+        var num = parseInt((obj.id || '0').replace(/[^0-9]/g,''), 10) || 0;
+        obj.cabang = (num % 2 === 0) ? 'Banyumanik' : 'Ungaran';
+      }
+      base.push(obj); 
+    });
+  }
+  if (base.length === 0) {
+    base = [
+      { id:'TB-0001', merek:'Bridgestone', tipe:'Turanza', ukuran:'195/65R15', ring:'15', hbeli:450000, hjual:650000, stok:12, stokMin:5, kategori:'Ban Mobil', cabang:'Banyumanik' },
+      { id:'TB-0002', merek:'Michelin', tipe:'Energy XM2', ukuran:'185/65R14', ring:'14', hbeli:520000, hjual:750000, stok:8, stokMin:5, kategori:'Ban Mobil', cabang:'Ungaran' },
+      { id:'TB-0003', merek:'GT Radial', tipe:'Champiro', ukuran:'175/70R13', ring:'13', hbeli:280000, hjual:400000, stok:20, stokMin:5, kategori:'Ban Mobil', cabang:'Banyumanik' },
+      { id:'TB-0004', merek:'Dunlop', tipe:'SP Sport', ukuran:'215/55R17', ring:'17', hbeli:680000, hjual:950000, stok:4, stokMin:5, kategori:'Ban Mobil', cabang:'Ungaran' },
+      { id:'TB-0005', merek:'IRC', tipe:'NR77', ukuran:'80/90-17', ring:'17', hbeli:95000, hjual:150000, stok:25, stokMin:5, kategori:'Ban Motor', cabang:'Banyumanik' }
+    ];
+  }
+  var mods = getProdMods();
+  mods.edited.forEach(function(e){
+    for (var i = 0; i < base.length; i++) {
+      if (base[i].id === e.id) { base[i] = Object.assign({}, e); break; }
+    }
+  });
+  var deletedIds = {};
+  for (var did in mods.deleted) deletedIds[did] = true;
+  base = base.filter(function(p){ return !deletedIds[p.id]; });
+  mods.added.forEach(function(p){ base.push(Object.assign({}, p)); });
+  base.forEach(function(p, i){
+    if (!p.id) p.id = 'TB-' + String(i + 1).padStart(4, '0');
+    if (!p.cabang) p.cabang = 'Banyumanik';
+  });
+  return base;
+}
+
+function initDB() {
+  var db = getDB();
+  if (db && db.initialized && db.dataVersion === DATA_VERSION) return db;
+  db = { initialized: true, dataVersion: DATA_VERSION, sales: [], orders: [], customers: [], competitorHistory: [], socialPosts: [], priceHistory: [] };
+  addSampleSalesData(db);
+  addSampleOrdersData(db);
+  addSampleCustomersData(db);
+  saveDB(db);
+  return db;
+}
+
+
+function addSampleSalesData(db) {
+  for (var i = 0; i < 15; i++) {
+    var d = new Date();
+    d.setDate(d.getDate() - i);
+    var dateStr = d.toISOString().slice(0,10);
+    var items = Math.floor(Math.random() * 5) + 1;
+    var total = Math.floor(Math.random() * 5000000) + 500000;
+    var produk = 'Ban ' + ['Bridgestone','Michelin','GT Radial','Dunlop','Accelera'][Math.floor(Math.random() * 5)];
+    var cabang = i % 3 === 0 ? 'Ungaran' : 'Banyumanik';
+    db.sales.push({ id:'INV-' + String(1000 + i), tanggal: dateStr, pelanggan: 'Pelanggan ' + (i + 1), produk: produk, jumlah: items, total: total, status: Math.random() > 0.2 ? 'Lunas' : 'Pending', cabang: cabang });
+  }
+}
+
+function addSampleOrdersData(db) {
+  db.orders.push({ id:'ORD-001', pelanggan:'Budi Santoso', telp:'08123456789', produk:'Bridgestone 195/65R15', jumlah:4, total:2600000, status:'Proses', tgl:'2025-01-10', cabang:'Banyumanik' });
+  db.orders.push({ id:'ORD-002', pelanggan:'Siti Rahmawati', telp:'08234567890', produk:'Michelin 185/65R14', jumlah:2, total:1500000, status:'Selesai', tgl:'2025-01-09', cabang:'Ungaran' });
+  db.orders.push({ id:'ORD-003', pelanggan:'Ahmad Hidayat', telp:'08345678901', produk:'GT Radial 175/70R13', jumlah:8, total:3200000, status:'Pending', tgl:'2025-01-08', cabang:'Banyumanik' });
+}
+
+function addSampleCustomersData(db) {
+  var tiers = ['Gold','Silver','Bronze'];
+  var names = ['Budi Santoso','Siti Rahmawati','Ahmad Hidayat','Dewi Lestari','Rudi Hermawan','Rina Marlina','Agus Wijaya','Nur Aini'];
+  names.forEach(function(n, i) {
+    var t = tiers[Math.floor(Math.random() * tiers.length)];
+    var p = Math.floor(Math.random() * 20) + 1;
+    db.customers.push({ id:'CUS-' + String(1001 + i), nama: n, telp: '08' + String(Math.floor(100000000 + Math.random() * 900000000)), poin: p * 100, tier: t, totalBelanja: p * 1500000, bergabung: '2024-0' + ((i % 9) + 1) + '-0' + ((i % 28) + 1) });
+  });
+}
+// ─── Utility Functions ───
+function formatRupiah(n) {
+  if (isNaN(n) || n === null || n === undefined) return '0';
+  return Number(n).toLocaleString('id-ID');
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function showToast(type, msg) {
+  var c = document.getElementById('toastContainer');
+  var t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(function(){ t.classList.add('toast-removing'); setTimeout(function(){ t.remove(); }, 300); }, 3000);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+// ═══ SETTINGS MODAL ═══
+const SETTINGS_KEY = 'tokoBanSettings';
+
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch(e){} return {};
+}
+
+function saveSettings(s) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+
+function openSettingsModal() {
+  var s = getSettings();
+  // Load Groq key
+  if (s.groqKey) {
+    document.getElementById('settingsGroqKey').value = s.groqKey;
+    updateGroqStatus();
+  }
+  if (s.groqModel) {
+    document.getElementById('settingsGroqModel').value = s.groqModel;
+  }
+  // Load business info
+  if (s.storeName) document.getElementById('settingsStoreName').value = s.storeName;
+  if (s.phone) document.getElementById('settingsPhone').value = s.phone;
+  if (s.wa) document.getElementById('settingsWa').value = s.wa;
+  // Load WhatsApp settings
+  if (s.autoReply) document.getElementById('settingsAutoReply').classList.add('active');
+  if (s.hoursStart) document.getElementById('settingsHoursStart').value = s.hoursStart;
+  if (s.hoursEnd) document.getElementById('settingsHoursEnd').value = s.hoursEnd;
+  // Load stock settings
+  if (s.lowStock) document.getElementById('settingsLowStock').value = s.lowStock;
+  // Product count
+  document.getElementById('settingsProdCount').textContent = getProducts().length;
+  // Default cabang for modals based on current filter
+  var defaultCabang = _activeCabang !== 'all' ? _activeCabang : 'Banyumanik';
+  var prodCabang = document.getElementById('prodCabang');
+  var orderCabang = document.getElementById('orderCabang');
+  if (prodCabang) prodCabang.value = defaultCabang;
+  if (orderCabang) orderCabang.value = defaultCabang;
+  document.getElementById('settingsModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function updateGroqStatus() {
+  var s = getSettings();
+  var dot = document.getElementById('settingsGroqDot');
+  var status = document.getElementById('settingsGroqStatus');
+  var key = s.groqKey || '';
+  if (key && key.length > 10 && key !== 'YOUR_GROQ_API_KEY_HERE') {
+    dot.className = 'settings-status-dot yellow';
+    status.innerHTML = '<span class="settings-status-dot yellow" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> API Key tersimpan — siap digunakan';
+  } else {
+    dot.className = 'settings-status-dot gray';
+    status.innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Groq AI tidak aktif';
+  }
+}
+
+function saveGroqKey() {
+  var s = getSettings();
+  s.groqKey = document.getElementById('settingsGroqKey').value;
+  s.groqModel = document.getElementById('settingsGroqModel').value;
+  saveSettings(s);
+  updateGroqStatus();
+  showToast('success', 'Groq API Key tersimpan!');
+}
+
+function testGroqKey() {
+  var s = getSettings();
+  var key = document.getElementById('settingsGroqKey').value || s.groqKey || '';
+  if (!key || key.length < 10 || key === 'YOUR_GROQ_API_KEY_HERE') {
+    showToast('error', 'Masukkan Groq API Key terlebih dahulu');
+    return;
+  }
+  s.groqKey = key;
+  saveSettings(s);
+  var dot = document.getElementById('settingsGroqDot');
+  // Validate format: Groq keys start with 'gsk_' and are 50+ chars
+  if (key.startsWith('gsk_') && key.length >= 50) {
+    dot.className = 'settings-status-dot green';
+    document.getElementById('settingsGroqStatus').innerHTML = '<span class="settings-status-dot green" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Key valid! Terhubung via Python backend nanti';
+    showToast('success', 'Key format valid!');
+  } else {
+    dot.className = 'settings-status-dot gray';
+    document.getElementById('settingsGroqStatus').innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Format Key tidak valid (harus gsk_...)';
+    showToast('error', 'Format Key salah');
+  }
+}
+
+function saveSettingsField(field, value) {
+  var s = getSettings();
+  s[field] = value;
+  saveSettings(s);
+}
+
+// Auto-save settings on input change
+document.addEventListener('change', function(e) {
+  if (!document.getElementById('settingsModal').classList.contains('open')) return;
+  var s = getSettings();
+  var el = e.target;
+  if (el.id === 'settingsStoreName') s.storeName = el.value;
+  else if (el.id === 'settingsPhone') s.phone = el.value;
+  else if (el.id === 'settingsWa') s.wa = el.value;
+  else if (el.id === 'settingsHoursStart') s.hoursStart = el.value;
+  else if (el.id === 'settingsHoursEnd') s.hoursEnd = el.value;
+  else if (el.id === 'settingsLowStock') s.lowStock = parseInt(el.value) || 5;
+  else return;
+  saveSettings(s);
+});
+
+// Close settings modal on backdrop click
+var settingsModalEl = document.getElementById('settingsModal');
+if (settingsModalEl) {
+  settingsModalEl.addEventListener('click', function(e) {
+    if (e.target === this) closeModal('settingsModal');
+  });
+}
+
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  var o = document.getElementById('sidebarOverlay');
+  s.classList.toggle('open');
+  o.classList.toggle('open');
+}
+
+// ─── Navigation ───
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  var nav = document.querySelector('.nav-item[data-page="' + page + '"]');
+  if (nav) nav.classList.add('active');
+  document.querySelector('.sidebar.open') && toggleSidebar();
+  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms sm">psychology</span> AI Command', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog' };
+  document.getElementById('pageTitle').innerHTML = (titles[page] || '<span class="ms">dashboard</span> <span>Dashboard</span>');
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'inventory') renderInventory();
+  if (page === 'pricelist') renderPriceList();
+  if (page === 'sales') renderSalesDashboard();
+  if (page === 'orders') renderOrders();
+  if (page === 'loyalty') renderLoyalty();
+  if (page === 'whatsapp') { waUpdatePreview(); waListTemplates(); }
+  if (page === 'social') { genCaption(); genContentPlan(); }
+  if (page === 'qr') genQRCatalog();
+}
+
+function setCabang(cabang) {
+  _activeCabang = cabang;
+  // Update switcher UI
+  document.querySelectorAll('.cabang-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.cabang === cabang); });
+  // Update page title to show cabang context
+  var titleSpan = document.querySelector('#pageTitle span');
+  if (titleSpan) {
+    var pageName = titleSpan.textContent.split(' - ')[0];
+    titleSpan.textContent = cabang === 'all' ? pageName : pageName + ' - ' + cabang;
+  }
+  // Re-render current page
+  var activePage = document.querySelector('.page.active');
+  if (activePage) {
+    var id = activePage.id.replace('page-', '');
+    if (id === 'dashboard') renderDashboard();
+    else if (id === 'inventory') renderInventory();
+    else if (id === 'orders') renderOrders();
+    else if (id === 'sales') renderSalesDashboard();
+    else if (id === 'pricelist') genPriceText();
+  }
+}
+
+function renderDashboard() {
+  var db = getDB();
+  if (!db) return;
+  var filteredSales = db.sales;
+  if (_activeCabang !== 'all') filteredSales = db.sales.filter(function(s){ return s.cabang === _activeCabang; });
+  var totalRevenue = filteredSales.reduce(function(s,x){ return s + (x.total || 0); }, 0);
+  var totalProfit = Math.round(totalRevenue * 0.35);
+  var totalSales = filteredSales.length;
+  var allProds = getProducts();
+  var cabangProds = getCabangFiltered(allProds);
+  var totalProducts = cabangProds.length;
+  var lowStock = cabangProds.filter(function(p){ return (p.stok || 0) <= (p.stokMin || 5); }).length;
+  
+  // Build stats with cabang breakdown
+  var statsHtml = '' +
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">payments</span></div><div class="stat-value">Rp ' + formatRupiah(totalRevenue) + '</div><div class="stat-label">Pendapatan' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">trending_up</span></div><div class="stat-value">' + totalSales + '</div><div class="stat-label">Transaksi' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card accent-purple"><div class="stat-icon"><span class="ms icon-26">inventory_2</span></div><div class="stat-value">' + totalProducts + '</div><div class="stat-label">Produk' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card ' + (lowStock > 0 ? 'accent-gold' : 'accent-green') + '"><div class="stat-icon">' + (lowStock > 0 ? '<span class=\"ms\">warning</span>' : '<span class=\"ms\">check_circle</span>') + '</div><div class="stat-value">' + lowStock + '</div><div class="stat-label">Stok Menipis</div></div>';
+  
+  // If viewing all, add per-cabang mini stats
+  if (_activeCabang === 'all') {
+    var bykCount = allProds.filter(function(p){ return p.cabang === 'Banyumanik'; }).length;
+    var ungCount = allProds.filter(function(p){ return p.cabang === 'Ungaran'; }).length;
+    var bykSales = db.sales.filter(function(s){ return (!s.cabang || s.cabang === 'Banyumanik'); }).reduce(function(t,x){ return t+(x.total||0); },0);
+    var ungSales = db.sales.filter(function(s){ return s.cabang === 'Ungaran'; }).reduce(function(t,x){ return t+(x.total||0); },0);
+    statsHtml += '' +
+      '<div class="stat-card accent-green"><div class="stat-icon"><span class="cabang-dot byk" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E7D32;"></span></div><div class="stat-value" style="font-size:18px;">' + bykCount + ' produk</div><div class="stat-label">Banyumanik · Rp ' + formatRupiah(bykSales) + '</div></div>' +
+      '<div class="stat-card accent-orange"><div class="stat-icon"><span class="cabang-dot ung" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF8F00;"></span></div><div class="stat-value" style="font-size:18px;">' + ungCount + ' produk</div><div class="stat-label">Ungaran · Rp ' + formatRupiah(ungSales) + '</div></div>';
+  }
+  document.getElementById('dashStats').innerHTML = statsHtml;
+  updateOrderBadge();
+  // Charts
+  var days = [], revs = [], topLabels = [], topData = [];
+  for (var i = 29; i >= 0; i--) {
+    var d = new Date(); d.setDate(d.getDate() - i);
+    var ds = d.toISOString().slice(0,10);
+    var s = filteredSales.filter(function(x){ return x.tanggal === ds; });
+    days.push(ds.slice(5));
+    revs.push(s.reduce(function(t,x){ return t + (x.total||0); }, 0));
+  }
+  var topProducts = {};
+  filteredSales.forEach(function(s){ topProducts[s.produk] = (topProducts[s.produk]||0) + (s.total||0); });
+  var sorted = Object.keys(topProducts).sort(function(a,b){ return topProducts[b] - topProducts[a]; }).slice(0, 7);
+  sorted.forEach(function(k){ topLabels.push(k); topData.push(topProducts[k]); });
+  renderChart('dashRevenueChart', 'line', days, revs, '#2E7D32');
+  renderChart('dashTopChart', 'bar', topLabels, topData, '#FF8F00');
+}
+
+function renderChart(id, type, labels, data, color) {
+  var canvas = document.getElementById(id);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (canvas.__chart) canvas.__chart.destroy();
+  var colors = Array.isArray(color) ? color : (labels || []).map(function(){ return color || '#2E7D32'; });
+  canvas.__chart = new Chart(ctx, {
+    type: type, data: { labels: labels || [], datasets: [{ data: data || [], backgroundColor: type === 'bar' ? colors : 'rgba(46,125,50,0.1)', borderColor: type === 'bar' ? colors : '#2E7D32', borderWidth: 2, fill: type === 'line', tension: 0.4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v){ return 'Rp ' + v.toLocaleString('id-ID'); } } } } }
+  });
+}
+
+function updateOrderBadge() {
+  var db = getDB();
+  if (!db) return;
+  var badge = document.getElementById('orderBadge');
+  if (badge) badge.textContent = db.orders.filter(function(o){ return o.status === 'Pending' || o.status === 'Proses'; }).length;
+}
+
+function resetAllData() {
+  localStorage.removeItem(DB_KEY);
+  localStorage.removeItem(PROD_MODS_KEY);
+  showToast('info', 'Data direset! Refresh halaman untuk memuat ulang.');
+  location.reload();
+}
+
+// ═══ INVENTORY BRAND DRILL-DOWN ═══
+function renderInventory() { invShowBrands(); }
+
+var _invDrill = { level: 0, brand: null, model: null };
+
+var BRAND_TIERS = {
+  'Michelin':'Premium','Bridgestone':'Premium','Yokohama':'Premium',
+  'Goodyear':'Premium','Dunlop':'Premium','Hankook':'Premium','Falken':'Premium',
+  'GT Radial':'Value','Accelera':'Value','Delium':'Value','Swallow':'Value','Sailun':'Value','Blackhawk':'Value'
+};
+
+function getBrandLogoPath(brand) {
+  var map = {
+    'Accelera': 'images/brands/accelera.png',
+    'Blackhawk': 'images/brands/blackhawk.png',
+    'Bridgestone': 'images/brands/bridgestone.svg',
+    'Continental': 'images/brands/continental.png',
+    'Delium': 'images/brands/delium.png',
+    'Dunlop': 'images/brands/dunlop.svg',
+    'Falken': 'images/brands/falken.svg',
+    'Goodyear': 'images/brands/goodyear.png',
+    'GT Radial': 'images/brands/gtradial.svg',
+    'Hankook': 'images/brands/hankook.svg',
+    'Michelin': 'images/brands/michelin.svg',
+    'Sailun': 'images/brands/sailun.png',
+    'Swallow': 'images/brands/swallow.png',
+    'Toyo': 'images/brands/toyo.png',
+    'Yokohama': 'images/brands/yokohama.png'
+  };
+  return map[brand] || '';
+}
+
+
+function invShowBrands() {
+  _invDrill = { level: 0, brand: null, model: null };
+  var allProds = getProducts();
+  var cabangProds = getCabangFiltered(allProds);
+  var totalItems = cabangProds.length;
+  var totalStock = cabangProds.reduce(function(s,p){ return s + (p.stok || 0); }, 0);
+  var totalValue = cabangProds.reduce(function(s,p){ return s + (p.hbeli || 0) * (p.stok || 0); }, 0);
+  var lowStock = cabangProds.filter(function(p){ return (p.stok || 0) <= (p.stokMin || 5); }).length;
+  document.getElementById('invStats').innerHTML =
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">inventory_2</span></div><div class="stat-value">' + totalItems + '</div><div class="stat-label">Produk' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">bar_chart</span></div><div class="stat-value">' + totalStock + '</div><div class="stat-label">Stok</div></div>' +
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">payments</span></div><div class="stat-value">Rp ' + formatRupiah(totalValue) + '</div><div class="stat-label">Nilai Stok</div></div>' +
+    '<div class="stat-card ' + (lowStock > 0 ? 'accent-gold' : 'accent-green') + '"><div class="stat-icon">' + (lowStock > 0 ? '<span class=\"ms\">warning</span>' : '<span class=\"ms\">check_circle</span>') + '</div><div class="stat-value">' + lowStock + '</div><div class="stat-label">Stok Menipis</div></div>';
+  document.getElementById('invDrillTitle').textContent = 'Data Ban per Merek' + (_activeCabang !== 'all' ? ' (' + _activeCabang + ')' : '');
+  document.getElementById('invBreadcrumb').style.display = 'none';
+  document.getElementById('invSearch').style.display = '';
+  document.getElementById('invSearch').value = '';
+  var groups = {};
+  cabangProds.forEach(function(p) {
+    var b = p.merek || 'Unknown';
+    if (!groups[b]) groups[b] = { models: {}, products: 0, stock: 0 };
+    groups[b].products++;
+    groups[b].stock += (p.stok || 0);
+    var t = p.tipe || 'Unknown';
+    if (!groups[b].models[t]) groups[b].models[t] = 0;
+    groups[b].models[t]++;
+  });
+  // Sort: brands with stock first (pinned), then out-of-stock brands
+  var hasStock = [];
+  var noStock = [];
+  Object.keys(groups).sort(function(a,b){ return a.localeCompare(b); }).forEach(function(brand) {
+    if (groups[brand].stock > 0) {
+      hasStock.push(brand);
+    } else {
+      noStock.push(brand);
+    }
+  });
+  var sorted = hasStock.concat(noStock);
+  var html = '<div class="brand-grid">';
+  sorted.forEach(function(brand) {
+    var g = groups[brand];
+    var tier = BRAND_TIERS[brand] || '';
+    var mc = Object.keys(g.models).length;
+    var safeBrand = brand.replace(/'/g, '\\u2019');
+    var noStockClass = g.stock === 0 ? ' brand-card-zero' : '';
+    html += '<div class="brand-card' + noStockClass + '" onclick="invShowModels(' + "'" + safeBrand + "'" + ')">';
+    if (g.stock > 0) html += '<div class="bc-pin"><span class="ms fill" style="font-size:12px;color:var(--primary-soft);">push_pin</span></div>';
+    var darkBrands = ['Accelera', 'Blackhawk', 'Yokohama'];
+    var avatarDark = darkBrands.indexOf(brand) !== -1 ? ' bc-avatar-dark' : '';
+    html += '<div class="bc-avatar' + avatarDark + '"><img src="' + getBrandLogoPath(brand) + '" alt="' + brand + '" onerror="this.style.display=\'none\'" loading="lazy"></div>';
+    html += '<div class="bc-name">' + brand + '</div>';
+    html += '<div class="bc-stats">' + mc + ' seri &middot; ' + g.products + ' produk &middot; ' + g.stock + ' unit</div>';
+    if (tier) html += '<div class="bc-tier" style="background:#18542a18;color:#18542a">' + tier + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('invContent').innerHTML = html;
+  updateOrderBadge();
+}
+
+function invShowModels(brand) {
+  _invDrill = { level: 1, brand: brand, model: null };
+  var allProds = getProducts();
+  var cabangProds = getCabangFiltered(allProds);
+  var products = cabangProds.filter(function(p){ return (p.merek || '') === brand; });
+  var tier = BRAND_TIERS[brand] || '';
+  var models = {};
+  products.forEach(function(p) {
+    var t = p.tipe || 'Unknown';
+    if (!models[t]) models[t] = { products: [], minPrice: Infinity, maxPrice: 0, totalStock: 0 };
+    models[t].products.push(p);
+    models[t].totalStock += (p.stok || 0);
+    if (p.hjual < models[t].minPrice) models[t].minPrice = p.hjual;
+    if (p.hjual > models[t].maxPrice) models[t].maxPrice = p.hjual;
+  });
+  document.getElementById('invDrillTitle').textContent = brand;
+  document.getElementById('invSearch').value = '';
+  document.getElementById('invBreadcrumb').style.display = '';
+  document.getElementById('invBreadcrumb').innerHTML = '<span class="bc-link" onclick="invShowBrands()">Semua Merek</span> <span class="bc-sep">&rsaquo;</span> <span class="bc-current">' + brand + '</span>';
+  var safeBrand = brand.replace(/'/g, "\\u2019");
+  var totalStock = products.reduce(function(s,p){ return s + (p.stok || 0); }, 0);
+  var html = '<div class="inv-drill-header">' +
+    '<div class="idh-avatar"><img src="' + getBrandLogoPath(brand) + '" alt="' + brand + '" onerror="this.style.display=\'none\'" loading="lazy"></div>' +
+    '<div class="idh-info"><div class="idh-brand">' + brand + '</div>' +
+    '<div class="idh-sub">' + Object.keys(models).length + ' seri &middot; ' + products.length + ' produk &middot; ' + totalStock + ' unit' + (tier ? ' &middot; ' + tier : '') + '</div></div>' +
+    '<button class="inv-back-btn" onclick="invShowBrands()">&larr; Kembali</button></div>';
+  html += '<div class="model-grid">';
+  var modelKeys = Object.keys(models).sort(function(a,b){ return a.localeCompare(b); });
+  modelKeys.forEach(function(m) {
+    var mod = models[m];
+    var priceText = mod.minPrice > 0 ? (mod.minPrice === mod.maxPrice ? 'Rp ' + formatRupiah(mod.minPrice) : 'Rp ' + formatRupiah(mod.minPrice) + ' - Rp ' + formatRupiah(mod.maxPrice)) : '';
+    var escaped = m.replace(/'/g, "\\u2019");
+    var stk = mod.totalStock;
+    var stkColor = stk > 10 ? '#2E7D32' : stk > 3 ? '#E65100' : '#C62828';
+    html += '<div class="model-card" onclick="invShowSizes(' + "'" + safeBrand + "'" + ',' + "'" + escaped + "'" + ')">' +
+      '<div class="mc-name">' + m + '</div>' +
+      '<div class="mc-count">' + mod.products.length + ' ukuran</div>' +
+      '<div class="mc-price">' + priceText + '</div>' +
+      '<div style="margin-top:6px;font-size:11px;font-weight:600;color:' + stkColor + '">Stok: ' + stk + '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('invContent').innerHTML = html;
+}
+
+function invShowSizes(brand, modelName) {
+  _invDrill = { level: 2, brand: brand, model: modelName };
+  var allProds = getProducts();
+  var cabangProds = getCabangFiltered(allProds);
+  var products = cabangProds.filter(function(p){ return (p.merek || '') === brand && (p.tipe || '') === modelName; });
+  products.sort(function(a,b){ return (parseInt(a.ring||0) - parseInt(b.ring||0)) || ((a.ukuran||'').localeCompare(b.ukuran||'')); });
+  document.getElementById('invDrillTitle').textContent = modelName + ' - ' + products.length + ' ukuran';
+  document.getElementById('invSearch').value = '';
+  var safeBrand = brand.replace(/'/g, "\\u2019");
+  var safeModel = modelName.replace(/'/g, "\\u2019");
+  document.getElementById('invBreadcrumb').style.display = '';
+  document.getElementById('invBreadcrumb').innerHTML = '<span class="bc-link" onclick="invShowBrands()">Semua Merek</span> <span class="bc-sep">&rsaquo;</span> <span class="bc-link" onclick="invShowModels(' + "'" + safeBrand + "'" + ')">' + brand + '</span> <span class="bc-sep">&rsaquo;</span> <span class="bc-current">' + modelName + '</span>';
+  var totalStk = products.reduce(function(s,p){ return s + (p.stok || 0); }, 0);
+  var html = '<div class="inv-drill-header">' +
+    '<div class="idh-avatar"><img src="' + getBrandLogoPath(brand) + '" alt="' + brand + '" onerror="this.style.display=\'none\'" loading="lazy"></div>' +
+    '<div class="idh-info"><div class="idh-brand">' + modelName + '</div>' +
+    '<div class="idh-sub">' + brand + ' &middot; ' + products.length + ' ukuran &middot; ' + totalStk + ' unit</div></div>' +
+    '<button class="inv-back-btn" onclick="invShowModels(' + "'" + safeBrand + "'" + ')">&larr; Kembali</button></div>';
+  html += '<div class="table-container"><table><thead><tr>' +
+    '<th>Ukuran</th><th>Ring</th><th>Kategori</th><th>Harga Jual</th><th>Modal</th><th>Margin</th><th>Stok</th><th>Cabang</th><th>Aksi</th></tr></thead><tbody>';
+  products.forEach(function(p) {
+    var stok = p.stok || 0;
+    var stokColor = stok > 10 ? '#2E7D32' : stok > 3 ? '#E65100' : '#C62828';
+    var profit = (p.hjual||0) - (p.hbeli||0);
+    var margin = (p.hbeli||0) > 0 ? Math.round(profit / (p.hbeli||0) * 100) : 0;
+    var marginColor = margin > 25 ? '#2E7D32' : margin > 15 ? '#E65100' : '#C62828';
+    var cabang = p.cabang || '-';
+    var cabangColor = cabang === 'Banyumanik' ? '#2E7D32' : cabang === 'Ungaran' ? '#FF8F00' : '#888';
+    html += '<tr><td><strong>' + p.ukuran + '</strong></td>' +
+      '<td>R' + p.ring + '</td><td>' + (p.kategori || '-') + '</td>' +
+      '<td><strong>Rp ' + formatRupiah(p.hjual) + '</strong></td>' +
+      '<td class="text-muted text-sm">Rp ' + formatRupiah(p.hbeli) + '</td>' +
+      '<td style="color:' + marginColor + ';font-weight:600">' + margin + '%</td>' +
+      '<td><span style="color:' + stokColor + ';font-weight:600">' + stok + '</span></td>' +
+      '<td><span style="color:' + cabangColor + ';font-weight:600;font-size:11px;">' + cabang + '</span></td>' +
+      '<td><button class="btn btn-sm btn-outline" onclick="editProduct(' + "'" + p.id + "'" + ')"><span class=\"ms sm\">edit</span></button> ' +
+      '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + "'" + p.id + "'" + ')"><span class=\"ms sm\">delete</span></button></td></tr>';
+  });
+  var totalValue = products.reduce(function(s,p){ return s + ((p.hjual||0) * (p.stok||0)); }, 0);
+  var totalCost = products.reduce(function(s,p){ return s + ((p.hbeli||0) * (p.stok||0)); }, 0);
+  html += '</tbody></table></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#f5f9f5;border-radius:0 0 var(--radius-sm) var(--radius-sm);font-size:12px;color:var(--text-light);flex-wrap:wrap;gap:8px;">' +
+    '<span><span class="ms sm" style="vertical-align:middle">bar_chart</span> ' + products.length + ' ukuran</span>' +
+    '<span><span class="ms sm" style="vertical-align:middle">inventory_2</span> ' + totalStk + ' unit</span>' +
+    '<span><span class="ms sm" style="vertical-align:middle">payments</span> Nilai: Rp ' + formatRupiah(totalValue) + '</span>' +
+    '<span>Modal: Rp ' + formatRupiah(totalCost) + '</span>' +
+    '<span class=\"ms sm\">trending_up</span> Untung: Rp ' + formatRupiah(totalValue - totalCost) + '</span></div>';
+  document.getElementById('invContent').innerHTML = html;
+}
+
+function invSearchFilter() {
+  var q = (document.getElementById('invSearch')?.value || '').toLowerCase();
+  if (_invDrill.level === 0) {
+    document.querySelectorAll('.brand-card').forEach(function(c){ c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+  } else if (_invDrill.level === 1) {
+    document.querySelectorAll('.model-card').forEach(function(c){ c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+  } else if (_invDrill.level === 2) {
+    document.querySelectorAll('#invContent table tbody tr').forEach(function(r){ r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+  }
+}
+
+// ═══ Show Low Stock ═══
+function showLowStock() {
+  var allProds = getProducts();
+  _invDrill = { level: 0, brand: null, model: null };
+  document.getElementById('invBreadcrumb').style.display = 'none';
+  document.getElementById('invDrillTitle').textContent = '<span class="ms sm">warning</span> Stok Menipis';
+  var low = allProds.filter(function(p){ return (p.stok || 0) <= (p.stokMin || 5); }).sort(function(a,b){ return (a.stok||0) - (b.stok||0); });
+  var totalItems = allProds.length;
+  var totalStock = allProds.reduce(function(s,p){ return s + (p.stok || 0); }, 0);
+  var totalValue = allProds.reduce(function(s,p){ return s + (p.hbeli || 0) * (p.stok || 0); }, 0);
+  document.getElementById('invStats').innerHTML =
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">inventory_2</span></div><div class="stat-value">' + totalItems + '</div><div class="stat-label">Total Produk</div></div>' +
+    '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">bar_chart</span></div><div class="stat-value">' + totalStock + '</div><div class="stat-label">Total Stok</div></div>' +
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">payments</span></div><div class="stat-value">Rp ' + formatRupiah(totalValue) + '</div><div class="stat-label">Total Nilai</div></div>' +
+    '<div class="stat-card accent-red"><div class="stat-icon"><span class="ms icon-26">warning</span></div><div class="stat-value">' + low.length + '</div><div class="stat-label">Stok Menipis</div></div>';
+  if (!low.length) {
+    document.getElementById('invContent').innerHTML = '<div class="empty-state"><div class="empty-icon"><span class="ms xl">check_circle</span></div><h3>Semua stok aman!</h3><p>Tidak ada produk dengan stok menipis</p></div>';
+    return;
+  }
+  var html = '<div class="inv-back-btn" onclick="invShowBrands()">&larr; Kembali ke Semua Merek</div><div class="table-container mt-3"><table><thead><tr><th>Merek</th><th>Tipe</th><th>Ukuran</th><th>Ring</th><th>Stok</th><th>Min</th><th>Aksi</th></tr></thead><tbody>';
+  low.forEach(function(p) {
+    var badgeClass = (p.stok||0) <= 0 ? 'badge-danger' : 'badge-warning';
+    html += '<tr><td><strong>' + esc(p.merek) + '</strong></td><td>' + esc(p.tipe||'-') + '</td><td>' + esc(p.ukuran) + '</td><td>' + esc(p.ring) + '</td><td><span class="badge ' + badgeClass + '">' + (p.stok||0) + '</span></td><td>' + (p.stokMin||5) + '</td><td><button class="btn btn-sm btn-outline" onclick="editProduct(' + "'" + p.id + "'" + ')"><span class=\"ms sm\">edit</span></button></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('invContent').innerHTML = html;
+}
+
+// ═══ PRICE LIST ═══
+function renderPriceList() {
+  var allProds = getProducts();
+  var html = '<table><thead><tr><th>Produk</th><th>Ukuran</th><th>Harga Jual</th><th>Stok</th></tr></thead><tbody>';
+  allProds.slice(0, 20).forEach(function(p) {
+    html += '<tr><td><strong>' + esc(p.merek) + '</strong> ' + esc(p.tipe||'') + '</td><td>' + esc(p.ukuran) + '</td><td><strong>Rp ' + formatRupiah(p.hjual) + '</strong></td><td>' + (p.stok||0) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  if (allProds.length > 20) html += '<p class="text-center text-muted text-sm mt-2">Menampilkan 20 dari ' + allProds.length + ' produk</p>';
+  document.getElementById('plProducts').innerHTML = html;
+}
+
+function genPriceText() {
+  var allProds = getProducts();
+  var text = '*DAFTAR HARGA BAN - TOKO BAN MURAH ANUGERAH*\n';
+  text += 'Alamat: Jl. Raya Utama No. 123\n';
+  text += '📞 ' + '08123456789' + '\n';
+  text += '─────────────────────\n\n';
+  var brands = {};
+  allProds.forEach(function(p) {
+    if (!brands[p.merek]) brands[p.merek] = [];
+    brands[p.merek].push(p);
+  });
+  Object.keys(brands).sort().forEach(function(b) {
+    text += '*' + b + '*\n';
+    brands[b].slice(0, 5).forEach(function(p) {
+      text += '• ' + p.tipe + ' ' + p.ukuran + ' → Rp ' + formatRupiah(p.hjual) + '\n';
+    });
+    if (brands[b].length > 5) text += '  (_+' + (brands[b].length - 5) + ' ukuran lain_)\n';
+    text += '\n';
+  });
+  text += '\n*Harga sudah termasuk service & balancing*\n';
+  text += '💳 *Bisa bayar via Transfer / QRIS*\n';
+  text += '🚚 *Gratis ongkir wilayah kota*\n\n';
+  text += '🏪 *Toko Ban Murah Anugerah*';
+  document.getElementById('plTextPreview').value = text;
+  return text;
+}
+
+function genFlyer() {
+  var text = document.getElementById('flyerText').value || 'PROMO SPESIAL!';
+  var price = document.getElementById('flyerPrice').value || '';
+  var el = document.getElementById('flyerPreview');
+  el.style.display = 'block';
+  el.innerHTML = '<div style="background:linear-gradient(135deg,#1B5E20,#2E7D32);color:white;border-radius:16px;padding:40px 30px;text-align:center;max-width:400px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">' +
+    '<div style="font-size:48px;margin-bottom:10px;">🏪</div>' +
+    '<div style="font-size:12px;opacity:0.7;margin-bottom:6px;">TOKO BAN MURAH ANUGERAH</div>' +
+    '<div style="font-size:22px;font-weight:800;margin-bottom:8px;">' + esc(text) + '</div>' +
+    (price ? '<div style="font-size:14px;opacity:0.9;margin-bottom:16px;">' + esc(price) + '</div>' : '') +
+    '<div style="border-top:1px dashed rgba(255,255,255,0.3);padding-top:12px;font-size:11px;opacity:0.7;">Hubungi: 08123456789</div></div>';
+}
+
+function copyText(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.select();
+  document.execCommand('copy');
+  showToast('success', 'Teks tercopy!');
+}
+
+// ═══ SALES DASHBOARD ═══
+function renderSalesDashboard() {
+  var db = getDB(); if (!db) return;
+  var filteredSales = db.sales;
+  if (_activeCabang !== 'all') filteredSales = db.sales.filter(function(s){ return s.cabang === _activeCabang; });
+  var totalRevenue = filteredSales.reduce(function(s,x){ return s + (x.total||0); }, 0);
+  var totalProfit = Math.round(totalRevenue * 0.35);
+  document.getElementById('salesStats').innerHTML =
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">payments</span></div><div class="stat-value">Rp ' + formatRupiah(totalRevenue) + '</div><div class="stat-label">Revenue' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">bar_chart</span></div><div class="stat-value">' + filteredSales.length + '</div><div class="stat-label">Transaksi</div></div>' +
+    '<div class="stat-card accent-purple"><div class="stat-icon"><span class="ms icon-26">trending_up</span></div><div class="stat-value">Rp ' + formatRupiah(totalProfit) + '</div><div class="stat-label">Estimasi Profit (35%)</div></div>';
+  if (_activeCabang === 'all') {
+    var bykSales = db.sales.filter(function(s){ return s.cabang === 'Banyumanik' || !s.cabang; }).reduce(function(t,x){return t+(x.total||0);},0);
+    var ungSales = db.sales.filter(function(s){ return s.cabang === 'Ungaran'; }).reduce(function(t,x){return t+(x.total||0);},0);
+    document.getElementById('salesStats').innerHTML += '' +
+      '<div class="stat-card accent-green"><div class="stat-icon"><span class="cabang-dot byk" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E7D32;"></span></div><div class="stat-value" style="font-size:18px;">Rp ' + formatRupiah(bykSales) + '</div><div class="stat-label">Banyumanik Revenue</div></div>' +
+      '<div class="stat-card accent-orange"><div class="stat-icon"><span class="cabang-dot ung" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF8F00;"></span></div><div class="stat-value" style="font-size:18px;">Rp ' + formatRupiah(ungSales) + '</div><div class="stat-label">Ungaran Revenue</div></div>';
+  }
+  var days = [], revs = [];
+  for (var i = 29; i >= 0; i--) {
+    var d = new Date(); d.setDate(d.getDate() - i);
+    var ds = d.toISOString().slice(0,10);
+    var s = filteredSales.filter(function(x){ return x.tanggal === ds; });
+    days.push(ds.slice(5));
+    revs.push(s.reduce(function(t,x){ return t + (x.total||0); }, 0));
+  }
+  var top = {};
+  filteredSales.forEach(function(s){ top[s.produk] = (top[s.produk]||0) + (s.total||0); });
+  var sorted = Object.keys(top).sort(function(a,b){ return top[b] - top[a]; }).slice(0,7);
+  renderChart('salesRevenueChart', 'line', days, revs, '#2E7D32');
+  renderChart('salesTopChart', 'bar', sorted, sorted.map(function(k){ return top[k]; }), '#FF8F00');
+}
+
+function genSalesReport() {
+  var db = getDB(); if (!db) return;
+  var filteredSales = db.sales;
+  if (_activeCabang !== 'all') filteredSales = db.sales.filter(function(s){ return s.cabang === _activeCabang; });
+  var total = filteredSales.reduce(function(s,x){ return s + (x.total||0); }, 0);
+  var txt = '*LAPORAN PENJUALAN' + (_activeCabang !== 'all' ? ' - ' + _activeCabang : '') + '*\n';
+  txt += '─────────────────────\n';
+  txt += 'Total Transaksi: ' + filteredSales.length + '\n';
+  txt += 'Total Pendapatan: Rp ' + formatRupiah(total) + '\n';
+  txt += 'Rata-rata: Rp ' + formatRupiah(Math.round(total / (filteredSales.length || 1))) + '\n\n';
+  txt += '*Produk Terlaris:*\n';
+  var top = {};
+  filteredSales.forEach(function(s){ top[s.produk] = (top[s.produk]||0) + (s.total||0); });
+  Object.keys(top).sort(function(a,b){ return top[b] - top[a]; }).slice(0,5).forEach(function(k){ txt += '• ' + k + ': Rp ' + formatRupiah(top[k]) + '\n'; });
+  txt += '\n' + new Date().toLocaleDateString('id-ID');
+  document.getElementById('salesReportText').value = txt;
+  return txt;
+}
+
+// ═══ ORDERS ═══
+function renderOrders() {
+  var db = getDB(); if (!db) return;
+  var filteredOrders = db.orders;
+  if (_activeCabang !== 'all') filteredOrders = db.orders.filter(function(o){ return o.cabang === _activeCabang; });
+  var totalOrders = filteredOrders.length;
+  var completedOrders = filteredOrders.filter(function(o){ return o.status === 'Selesai'; }).length;
+  var pendingOrders = filteredOrders.filter(function(o){ return o.status === 'Pending' || o.status === 'Proses'; }).length;
+  document.getElementById('orderStats').innerHTML =
+    '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">receipt_long</span></div><div class="stat-value">' + totalOrders + '</div><div class="stat-label">Total' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">check_circle</span></div><div class="stat-value">' + completedOrders + '</div><div class="stat-label">Selesai</div></div>' +
+    '<div class="stat-card accent-gold"><div class="stat-icon"><span class="ms icon-26">hourglass_empty</span></div><div class="stat-value">' + pendingOrders + '</div><div class="stat-label">Pending</div></div>';
+  var html = '<table><thead><tr><th>ID</th><th>Pelanggan</th><th>Produk</th><th>Jumlah</th><th>Total</th><th>Cabang</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+  filteredOrders.slice().reverse().forEach(function(o) {
+    var badge = o.status === 'Selesai' ? 'badge-success' : o.status === 'Proses' ? 'badge-warning' : 'badge-danger';
+    var cabangLabel = o.cabang || '-';
+    var cabangColor = cabangLabel === 'Banyumanik' ? '#2E7D32' : cabangLabel === 'Ungaran' ? '#FF8F00' : '#888';
+    html += '<tr><td>' + o.id + '</td><td><strong>' + esc(o.pelanggan) + '</strong></td><td>' + esc(o.produk) + '</td><td>' + (o.jumlah||1) + '</td><td>Rp ' + formatRupiah(o.total) + '</td><td><span style="color:' + cabangColor + ';font-weight:400;font-size:12px;">' + cabangLabel + '</span></td><td><span class="badge ' + badge + '">' + o.status + '</span></td><td><button class="btn btn-sm btn-outline" onclick="showToast(\'info\',\'Detail pesanan ' + o.id + '\')"><span class=\"ms sm\">search</span></button></td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('orderTableContainer').innerHTML = html;
+  updateOrderBadge();
+}
+
+function addSampleOrders() {
+  var db = getDB(); if (!db) return;
+  addSampleOrdersData(db);
+  saveDB(db);
+  renderOrders();
+  showToast('success', 'Sample pesanan ditambahkan!');
+}
+
+function showAddOrderModal() { document.getElementById('addOrderModal').classList.add('open'); }
+
+function addOrder() {
+  var db = getDB(); if (!db) return;
+  var o = {
+    id: 'ORD-' + String(Date.now()).slice(-6),
+    pelanggan: document.getElementById('orderNama').value,
+    telp: document.getElementById('orderTelp').value,
+    produk: document.getElementById('orderProduk').value,
+    jumlah: parseInt(document.getElementById('orderJumlah').value) || 1,
+    total: parseInt(document.getElementById('orderTotal').value) || 0,
+    status: 'Pending',
+    cabang: document.getElementById('orderCabang') ? document.getElementById('orderCabang').value : (_activeCabang !== 'all' ? _activeCabang : 'Banyumanik'),
+    tgl: new Date().toISOString().slice(0,10)
+  };
+  db.orders.push(o);
+  saveDB(db);
+  closeModal('addOrderModal');
+  renderOrders();
+  showToast('success', 'Pesanan ditambahkan!');
+}
+
+function showPendingOrders() {
+  var db = getDB(); if (!db) return;
+  var p = db.orders.filter(function(o){ return o.status === 'Pending' || o.status === 'Proses'; });
+  if (!p.length) { showToast('info', 'Semua pesanan sudah selesai!'); return; }
+  var txt = '⏳ *PESANAN PENDING*\n';
+  p.forEach(function(o){ txt += '• ' + o.id + ' - ' + o.pelanggan + ' - Rp ' + formatRupiah(o.total) + ' [' + o.status + ']\n'; });
+  document.getElementById('orderTableContainer').innerHTML = '<textarea class="form-textarea" rows="8" readonly>' + txt + '</textarea>';
+}
+
+// ═══ LOYALTY ═══
+function renderLoyalty() {
+  var db = getDB(); if (!db) return;
+  var tiers = [
+    { name:'🥇 Gold', min:1000, color:'#FFD700', bg:'#FFF8E1' },
+    { name:'🥈 Silver', min:500, color:'#9E9E9E', bg:'#F5F5F5' },
+    { name:'🥉 Bronze', min:0, color:'#CD7F32', bg:'#FFF3E0' }
+  ];
+  document.getElementById('tierCards').innerHTML = tiers.map(function(t){
+    var count = db.customers.filter(function(c){ return c.tier === t.name.replace(/[^a-zA-Z]/g,''); }); // simple
+    return '<div class="stat-card" style="border:2px solid ' + t.color + '"><div class="stat-icon" style="font-size:32px;">' + t.name.slice(0,2) + '</div><div class="stat-value">' + t.name + '</div><div class="stat-label">Min ' + t.min + ' poin</div></div>';
+  }).join('');
+  var html = '<table><thead><tr><th>Nama</th><th>Telepon</th><th>Poin</th><th>Tier</th><th>Total Belanja</th></tr></thead><tbody>';
+  db.customers.forEach(function(c) {
+    html += '<tr><td><strong>' + esc(c.nama) + '</strong></td><td>' + esc(c.telp) + '</td><td>' + (c.poin||0) + '</td><td><span class="badge badge-warning">' + c.tier + '</span></td><td>Rp ' + formatRupiah(c.totalBelanja) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('loyaltyTableContainer').innerHTML = html;
+}
+
+function addSampleCustomers() {
+  var db = getDB(); if (!db) return;
+  addSampleCustomersData(db);
+  saveDB(db);
+  renderLoyalty();
+  showToast('success', 'Sample pelanggan ditambahkan!');
+}
+
+// ═══ WHATSAPP ═══
+function waUpdatePreview() {
+  var t = document.getElementById('waTemplate').value;
+  var pre = '';
+  var presets = {
+    promo: '*PROMO SPESIAL BAN!*\n\nHalo {nama},\n\nDapatkan diskon 20% untuk semua ban Bridgestone & Michelin!\n\nToko Ban Murah Anugerah\nJl. Raya Utama No. 123\nTelp: 08123456789',
+    halo: 'Halo {nama},\n\nTerima kasih telah menjadi pelanggan setia Toko Ban Murah Anugerah! Kami siap melayani kebutuhan ban Anda.\n\n*Toko Ban Murah Anugerah*',
+    harga: '*DAFTAR HARGA BAN*\n\nHalo {nama}, berikut daftar harga terbaru dari Toko Ban Murah Anugerah...',
+    lokasi: '*LOKASI TOKO*\n\nToko Ban Murah Anugerah\nJl. Raya Utama No. 123\nBuka: Senin-Sabtu 08:00-17:00\n\nMaps: https://goo.gl/maps/...',
+    stok: '*INFO STOK BAN*\n\nHalo {nama}, stok ban yang Anda tanyakan masih tersedia. Silakan mampir ke toko kami ya!',
+    terima_kasih: '*TERIMA KASIH*\n\nHalo {nama},\n\nTerima kasih sudah berbelanja di Toko Ban Murah Anugerah! Kepuasan Anda adalah prioritas kami.'
+  };
+  pre = presets[t] || 'Pilih template pesan...';
+  document.getElementById('waPreview').value = pre;
+}
+
+function waListTemplates() {
+  var list = [
+    'Promo: Diskon & promo spesial',
+    'Salam: Sapaan pembuka',
+    'Harga: Daftar harga',
+    'Lokasi: Alamat & peta',
+    'Stok: Info ketersediaan',
+    'Terima Kasih: Follow-up'
+  ];
+  document.getElementById('waTemplateList').innerHTML = list.map(function(l){ return '<div>' + l + '</div>'; }).join('');
+}
+
+function waSend() {
+  var phone = document.getElementById('waPhone').value.replace(/[^0-9]/g,'');
+  if (!phone || phone.length < 10) { showToast('error', 'Nomor tidak valid!'); return; }
+  var msg = document.getElementById('waPreview').value;
+  var url = 'https://wa.me/62' + phone.slice(phone.startsWith('0') ? 1 : 0) + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  showToast('success', 'WhatsApp terbuka!');
+}
+
+function waBlast() {
+  var db = getDB(); if (!db) return;
+  var customers = db.customers;
+  if (!customers || !customers.length) { showToast('error', 'Belum ada pelanggan!'); return; }
+  var msg = genPriceText();
+  customers.forEach(function(c, i) {
+    setTimeout(function(){
+      var telp = (c.telp || '').replace(/[^0-9]/g,'');
+      if (telp && telp.length >= 10) {
+        var url = 'https://wa.me/62' + telp.slice(telp.startsWith('0') ? 1 : 0) + '?text=' + encodeURIComponent(msg);
+        window.open(url, '_blank');
+      }
+    }, i * 3000);
+  });
+  showToast('success', 'Promo dikirim ke ' + customers.length + ' pelanggan!');
+}
+
+// ═══ SOCIAL MEDIA ═══
+function genCaption() {
+  var t = document.getElementById('socialTemplate').value;
+  var caps = {
+    promo_harga: '*PROMO SPESIAL BAN MURAH!*\n\nDapatkan diskon hingga 20% untuk semua ban original!\n\n*Toko Ban Murah Anugerah*\nJl. Raya Utama No. 123\nTelp: 08123456789\n\n#PromoBan #BanMurah #TokoBan #SparepartMobil #Bridgestone #Michelin',
+    new_stock: '*STOK BARU TIBA!*\n\nBan-ban terbaru dari berbagai merek ternama sudah tersedia!\n\n- Bridgestone\n- Michelin\n- GT Radial\n- Dunlop\n- Accelera\n\nLangsung datang ke toko kami ya!\n\n#StokBaru #BanOriginal #TokoBan #Otomotif',
+    tips_ban: '*TIPS MERAWAT BAN MOBIL*\n\n1. Cek tekanan angin seminggu sekali\n2. Rotasi ban setiap 10.000 km\n3. Periksa ketebalan tread secara berkala\n4. Spooring & balancing rutin\n5. Gunakan ban sesuai spesifikasi mobil\n\n*Toko Ban Murah Anugerah*\n\n#TipsBan #PerawatanMobil #Otomotif #BanMobil',
+    testimoni: '*TESTIMONI PELANGGAN*\n\n\"Pelayanan ramah, harga bersaing, dan ban original! Pasti balik lagi ke sini!\" - Bapak Budi\n\nIngin pengalaman belanja ban yang menyenangkan? Kunjungi *Toko Ban Murah Anugerah* sekarang!\n\n#Testimoni #TokoBan #PelangganPuas #BanMurah',
+    produk_unggulan: '*PRODUK UNGGULAN KAMI*\n\n*Bridgestone Turanza* - Premium touring, nyaman & awet\n*Michelin Energy XM2* - Irit bahan bakar, umur panjang\n*GT Radial Champiro* - Performa tinggi, harga terjangkau\n\nSemua ban original 100% dengan garansi!\n\nInfo & pemesanan: 08123456789\n\n#ProdukUnggulan #BanPremium #TokoBan #Bridgestone #Michelin',
+    hari_libur: '*INFO OPERASIONAL*\n\n*Toko Ban Murah Anugerah*\nSenin - Sabtu: 08.00 - 17.00\nMinggu & Hari Libur: TUTUP\n\nUntuk pembelian di luar jam operasional, hubungi via WA ya!\nTelp: 08123456789\n\n#InfoToko #JamOperasional #TokoBan'
+  };
+  document.getElementById('socialCaption').value = caps[t] || caps.promo_harga;
+}
+
+function genContentPlan() {
+  var days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+  var ideas = ['Promo Spesial Ban','Tips Perawatan Ban','Produk Unggulan','Testimoni Pelanggan','Info Operasional','Best Seller Ban','Quiz & Giveaway'];
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  days.forEach(function(d, i) {
+    html += '<div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">' +
+      '<div style="font-weight:700;color:var(--primary);font-size:12px;">' + d + '</div>' +
+      '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + ideas[i % ideas.length] + '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('socialPlan').innerHTML = html;
+}
+
+function genTip() {
+  var tips = [
+    'Ban depan dan belakang mobil memiliki tingkat keausan yang berbeda. Lakukan rotasi ban setiap 10.000 km untuk memperpanjang umur ban!',
+    'Tekanan angin ban yang tepat bisa menghemat bahan bakar hingga 3%! Cek tekanan ban seminggu sekali ya!',
+    'Ban dengan tread yang sudah tipis (di bawah 1.6mm) berbahaya saat jalan basah. Segera ganti ban Anda!',
+    'Ban radials memiliki konstruksi yang lebih fleksibel dan nyaman dibanding ban bias. Cocok untuk perjalanan jauh!',
+    'Suhu ban naik saat berkendara di tol. Pastikan tekanan angin sesuai rekomendasi pabrikan untuk menghindari pecah ban!'
+  ];
+  document.getElementById('socialTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+}
+
+// ═══ COMPETITOR ═══
+function searchCompetitors() {
+  var query = document.getElementById('compQuery').value;
+  if (!query) { showToast('error', 'Masukkan nama produk!'); return; }
+  var competitors = [
+    { nama: 'Toko Ban Jaya', harga: Math.floor(Math.random() * 200000) + 600000, jarak: '1.2 km' },
+    { nama: 'Ban Center', harga: Math.floor(Math.random() * 200000) + 550000, jarak: '2.5 km' },
+    { nama: 'Super Ban', harga: Math.floor(Math.random() * 200000) + 650000, jarak: '3.8 km' },
+    { nama: 'Toko Ban Kita', harga: Math.floor(Math.random() * 150000) + 500000, jarak: '0.8 km' }
+  ];
+  var html = '<h4 style="margin-bottom:8px;"><span class="ms sm" style="vertical-align:middle">search</span> Hasil untuk: ' + esc(query) + '</h4><table><thead><tr><th>Toko</th><th>Harga</th><th>Jarak</th></tr></thead><tbody>';
+  competitors.forEach(function(c) {
+    html += '<tr><td>' + c.nama + '</td><td>Rp ' + formatRupiah(c.harga) + '</td><td>' + c.jarak + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('compResults').innerHTML = html;
+  renderChart('compChart', 'bar', competitors.map(function(c){ return c.nama; }), competitors.map(function(c){ return c.harga; }), '#E53935');
+}
+
+// ═══ QR CATALOG ═══
+function genQRCatalog() {
+  var allProds = getProducts();
+  var html = '<div class="product-catalog-grid">';
+  allProds.slice(0, 50).forEach(function(p) {
+    html += '<div class="product-catalog-card">' +
+      '<div class="pc-brand">' + esc(p.merek) + '</div>' +
+      '<div class="pc-spec">' + esc(p.tipe||'') + ' ' + esc(p.ukuran) + ' R' + p.ring + '</div>' +
+      '<div class="pc-price">Rp ' + formatRupiah(p.hjual) + '</div>' +
+      '<div><span class="badge badge-success">Stok: ' + (p.stok||0) + '</span></div></div>';
+  });
+  html += '</div><p class="text-center text-muted text-sm mt-3">Menampilkan 50 dari ' + allProds.length + ' produk</p>';
+  document.getElementById('qrCatalogPreview').innerHTML = html;
+  document.getElementById('qrStats').innerHTML =
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">inventory_2</span></div><div class="stat-value">' + allProds.length + '</div><div class="stat-label">Total Produk</div></div>' +
+    '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">local_offer</span></div><div class="stat-value">Rp ' + formatRupiah(Math.round(allProds.reduce(function(s,p){ return s + (p.hjual||0); }, 0) / (allProds.length || 1))) + '</div><div class="stat-label">Rata-rata Harga</div></div>';
+}
+
+// ═══ EXCEL AUTO ═══
+function exportSalesReport() {
+  var db = getDB(); if (!db) return;
+  var csv = 'ID,Tanggal,Pelanggan,Produk,Jumlah,Total,Status\n';
+  db.sales.forEach(function(s) {
+    csv += s.id + ',' + s.tanggal + ',"' + s.pelanggan + '","' + s.produk + '",' + (s.jumlah||1) + ',' + (s.total||0) + ',' + s.status + '\n';
+  });
+  downloadCSV(csv, 'laporan_penjualan.csv');
+  showToast('success', 'File CSV siap didownload!');
+}
+
+function exportCatalog() {
+  var allProds = getProducts();
+  var csv = 'Merek,Tipe,Ukuran,Ring,Harga Beli,Harga Jual,Stok,Kategori\n';
+  allProds.forEach(function(p) {
+    csv += '"' + (p.merek||'') + '","' + (p.tipe||'') + '","' + (p.ukuran||'') + '","' + (p.ring||'') + '",' + (p.hbeli||0) + ',' + (p.hjual||0) + ',' + (p.stok||0) + ',"' + (p.kategori||'') + '"\n';
+  });
+  downloadCSV(csv, 'katalog_ban.csv');
+  showToast('success', 'File CSV siap didownload!');
+}
+
+function downloadCSV(csv, filename) {
+  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+
+function genDailySummary() {
+  var db = getDB(); if (!db) return;
+  var today = new Date().toISOString().slice(0,10);
+  var todaySales = db.sales.filter(function(s){ return s.tanggal === today; });
+  var total = todaySales.reduce(function(t,s){ return t + (s.total||0); }, 0);
+  var allProds = getProducts();
+  var lowStock = allProds.filter(function(p){ return (p.stok||0) <= (p.stokMin||5); }).length;
+  var txt = '*RINGKASAN HARIAN - ' + new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) + '*\n\n';
+  txt += '*Penjualan Hari Ini:*\n';
+  txt += '• Transaksi: ' + todaySales.length + '\n';
+  txt += '• Pendapatan: Rp ' + formatRupiah(total) + '\n\n';
+  txt += '*Inventaris:*\n';
+  txt += '• Total Produk: ' + allProds.length + '\n';
+  txt += '• Stok Menipis: ' + lowStock + '\n\n';
+  txt += '*Pesanan:*\n';
+  txt += '• Total: ' + db.orders.length + '\n';
+  txt += '• Pending: ' + db.orders.filter(function(o){ return o.status === 'Pending'; }).length + '\n\n';
+  txt += '*Pelanggan:* ' + db.customers.length + '\n\n';
+  txt += '— *Toko Ban Murah Anugerah* 🏪';
+  document.getElementById('dailySummaryText').value = txt;
+}
+
+// ═══ PRODUCT CRUD ═══
+function showAddProductModal() { document.getElementById('addProductModal').classList.add('open'); }
+
+function addProduct() {
+  var p = {
+    id: 'TB-' + String(Date.now()).slice(-6),
+    merek: document.getElementById('prodMerek').value,
+    tipe: document.getElementById('prodTipe').value,
+    ukuran: document.getElementById('prodUkuran').value,
+    ring: document.getElementById('prodRing').value,
+    hbeli: parseInt(document.getElementById('prodHargaBeli').value) || 0,
+    hjual: parseInt(document.getElementById('prodHargaJual').value) || 0,
+    stok: parseInt(document.getElementById('prodStok').value) || 0,
+    stokMin: 5,
+    kategori: document.getElementById('prodKategori').value,
+    cabang: document.getElementById('prodCabang').value
+  };
+  if (!p.merek || !p.ukuran) { showToast('error', 'Merek dan ukuran wajib diisi!'); return; }
+  var mods = getProdMods();
+  mods.added.push(p);
+  saveProdMods(mods);
+  closeModal('addProductModal');
+  invShowBrands();
+  showToast('success', 'Produk ' + p.merek + ' ' + p.ukuran + ' (' + p.cabang + ') ditambahkan!');
+}
+
+function editProduct(id) {
+  var db = getDB(); if (!db) return;
+  var p = allProds.find(function(x){ return x.id === id; });
+  if (!p) { showToast('error', 'Produk tidak ditemukan!'); return; }
+  document.getElementById('prodMerek').value = p.merek || '';
+  document.getElementById('prodTipe').value = p.tipe || '';
+  document.getElementById('prodUkuran').value = p.ukuran || '';
+  document.getElementById('prodRing').value = p.ring || '';
+  document.getElementById('prodHargaBeli').value = p.hbeli || 0;
+  document.getElementById('prodHargaJual').value = p.hjual || 0;
+  document.getElementById('prodStok').value = p.stok || 0;
+  document.getElementById('prodKategori').value = p.kategori || 'Ban Mobil';
+  document.getElementById('prodCabang').value = p.cabang || 'Banyumanik';
+  document.getElementById('addProductModal').classList.add('open');
+  var oldId = id;
+  // Override save
+  var oldSave = window.addProduct;
+  window.addProduct = function() {
+    p.merek = document.getElementById('prodMerek').value;
+    p.tipe = document.getElementById('prodTipe').value;
+    p.ukuran = document.getElementById('prodUkuran').value;
+    p.ring = document.getElementById('prodRing').value;
+    p.hbeli = parseInt(document.getElementById('prodHargaBeli').value) || 0;
+    p.hjual = parseInt(document.getElementById('prodHargaJual').value) || 0;
+    p.stok = parseInt(document.getElementById('prodStok').value) || 0;
+    p.kategori = document.getElementById('prodKategori').value;
+    p.cabang = document.getElementById('prodCabang').value;
+    saveDB(db);
+    closeModal('addProductModal');
+    window.addProduct = oldSave;
+    invShowBrands();
+    showToast('success', 'Produk diupdate!');
+  };
+}
+
+function deleteProduct(id) {
+  if (!confirm('Hapus produk ini?')) return;
+  var mods = getProdMods();
+  mods.added = mods.added.filter(function(p){ return p.id !== id; });
+  mods.edited = mods.edited.filter(function(p){ return p.id !== id; });
+  mods.deleted[id] = true;
+  saveProdMods(mods);
+  invShowBrands();
+  showToast('success', 'Produk dihapus!');
+}
+
+// ═══ AI COMMAND ═══
+// ─── Conversation History ───
+var _aiHistory = [];
+const AI_MAX_HISTORY = 30;
+
+// ─── System Prompt (from ai-agent-persona.md) ───
+const AI_SYSTEM_PROMPT = `Anda adalah Executive Growth Partner untuk Toko Ban Murah Anugerah, toko ban dengan 2 cabang di Banyumanik dan Ungaran.
+
+PERSONA & TONE:
+- Affordable (Murah/Hemat): Posisikan toko sebagai value terbaik
+- Trustable (Terpercaya/Aman): Fokus pada keamanan, teknisi ahli, garansi original
+- Premium (Berkualitas/Mewah): Punya inventory premium (Michelin, Bridgestone, Yokohama, Toyo)
+- Fast (Cepat/Sat-Set): Efisiensi, minim waktu tunggu
+
+LOKASI:
+- Banyumanik: Jl. Perintis Kemerdekaan No.10A, 08:00-17:30, 4 teknisi
+- Ungaran: Jl. Diponegoro No.79, 08:00-18:00, 3 teknisi
+- Instagram: @tokobanmurahanugerah
+- WhatsApp: 081280595845
+
+MEREK BAN:
+- Premium: Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken
+- Value: Accelera, GT Radial (GTR), Delium, Swallow, Sailun, Blackhawk, Continental, Giti
+
+KOMPETITOR UTAMA: SSM, Omah Ban, HSR Wheel
+
+TUGAS UTAMA ANDA:
+1. Bantu analisis stok, harga, dan data inventory
+2. Beri rekomendasi strategi harga dan promo
+3. Bantu buat konten marketing dan caption sosial media
+4. Analisis kompetitor
+5. Bantu program loyalitas pelanggan
+
+ATURAN PERCAKAPAN - INI WAJIB!
+- Gunakan bahasa Indonesia yang natural dan ramah
+- Anda HARUS selalu bertanya dan mengklarifikasi! Jangan hanya menjawab.
+- Jika perintah kurang jelas, TANYAKAN detailnya sebelum menjawab
+- Jadilah proaktif: tanyakan "cabang mana?", "merek apa?", "ukuran berapa?"
+- Gali kebutuhan user dengan pertanyaan lanjutan
+- Jika user minta saran, beri opsi dan tanya preferensi mereka
+- Gunakan gaya bicara yang hangat dan profesional
+- Boleh gunakan istilah lokal seperti "murah", "sat-set", "berkualitas"`;
+
+// ─── Business Data Context Builder ───
+function buildBusinessContext() {
+  var db = getDB();
+  if (!db) return '\n\nDATA BISNIS: Data belum diinisialisasi.';
+  
+  var allProds = getProducts();
+  var bykProds = getCabangFiltered(allProds);
+  var totalStock = allProds.reduce(function(s,p){ return s + (p.stok||0); }, 0);
+  var bykStock = bykProds.reduce(function(s,p){ return s + (p.stok||0); }, 0);
+  var lowStock = allProds.filter(function(p){ return (p.stok||0) <= (p.stokMin||5); }).length;
+  var rev = db.sales ? db.sales.reduce(function(s,x){ return s + (x.total||0); }, 0) : 0;
+  var salesCount = db.sales ? db.sales.length : 0;
+  var orderCount = db.orders ? db.orders.length : 0;
+  var customerCount = db.customers ? db.customers.length : 0;
+  
+  return `\n\nDATA BISNIS SAAT INI:\n- Total produk: ${allProds.length}\n- Total stok: ${totalStock} unit\n- Stok menipis: ${lowStock} produk\n- Penjualan: ${salesCount} transaksi\n- Revenue: Rp ${formatRupiah(rev)}\n- Pesanan: ${orderCount}\n- Pelanggan: ${customerCount}\n- Merek premium: Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken\n- Merek value: Accelera, GT Radial, Delium, Swallow, Sailun, Blackhawk, Continental, Giti`;
+}
+
+// ─── Send Message ───
+function aiSend(msg) {
+  var input = document.getElementById('chatInput');
+  var text = msg || input.value;
+  if (!text) return;
+  input.value = '';
+  
+  var msgs = document.getElementById('chatMessages');
+  msgs.innerHTML += '<div class="chat-bubble user">' + esc(text) + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  // Add to conversation history
+  _aiHistory.push({ role: 'user', content: text });
+  
+  // Show typing indicator
+  var typing = '<div class="chat-typing" id="typing"><span></span><span></span><span></span></div>';
+  msgs.innerHTML += typing;
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  var s = getSettings();
+  var key = s.groqKey || '';
+  
+  if (key && key.startsWith('gsk_') && key.length >= 50) {
+    // ─── Groq AI Mode ───
+    callGroqAI(text, s, function(reply) {
+      document.getElementById('typing')?.remove();
+      var formatted = reply.replace(/\n/g, '<br>');
+      msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
+      msgs.scrollTop = msgs.scrollHeight;
+      _aiHistory.push({ role: 'assistant', content: reply });
+    });
+  } else {
+    // ─── Belum ada API Key ───
+    document.getElementById('typing')?.remove();
+    var helpMsg = '<div class="chat-bubble ai">' +
+      '<span class="ms sm" style="vertical-align:middle">psychology</span> <strong>Groq AI belum aktif!</strong><br><br>' +
+      'Untuk menggunakan AI Command, Anda perlu mengatur <strong>Groq API Key</strong> terlebih dahulu.<br><br>' +
+      '<span class="ms sm" style="vertical-align:middle">settings</span> Buka <strong>Pengaturan</strong> (icon gear di pojok kiri bawah) → masukkan API Key → Simpan' +
+      '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
+    msgs.innerHTML += helpMsg;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+// ─── Groq API Call ───
+function callGroqAI(userText, settings, callback) {
+  var model = settings.groqModel || 'llama-3.1-8b-instant';
+  var key = settings.groqKey;
+  
+  // Build messages with system prompt + context + history
+  var messages = [
+    { role: 'system', content: AI_SYSTEM_PROMPT + buildBusinessContext() }
+  ];
+  
+  // Add conversation history (keep last N exchanges)
+  var history = _aiHistory.slice(-(AI_MAX_HISTORY * 2));
+  history.forEach(function(m) { messages.push(m); });
+  
+  fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + key
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 2048,
+      top_p: 0.95
+    })
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+    return r.json();
+  })
+  .then(function(data) {
+    if (data.error) {
+      callback('Maaf, terjadi kesalahan: ' + (data.error.message || 'Unknown error'));
+    } else if (data.choices && data.choices[0] && data.choices[0].message) {
+      callback(data.choices[0].message.content);
+    } else {
+      callback('Maaf, saya tidak bisa memproses permintaan saat ini. Coba lagi ya!');
+    }
+  })
+  .catch(function(err) {
+    callback('Maaf, terjadi gangguan: ' + err.message + '. Cek API Key atau koneksi internet Anda.');
+  });
+}
+
+// ─── Reset Chat ───
+
+// ─── Reset Chat ───
+function resetChat() {
+  if (!confirm('Reset percakapan? Riwayat chat akan dihapus.')) return;
+  _aiHistory = [];
+  var msgs = document.getElementById('chatMessages');
+  // Keep only the welcome message
+  msgs.innerHTML = document.getElementById('aiWelcomeMsg').outerHTML;
+  showToast('info', 'Percakapan direset!');
+}
+
+// ═══ INIT ═══
+initDB();
+renderDashboard();
+
+// Chat input enter key
+document.addEventListener('DOMContentLoaded', function() {
+  var ci = document.getElementById('chatInput');
+  if (ci) ci.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') aiSend();
+  });
+});
+</script>
+</body>
+</html>

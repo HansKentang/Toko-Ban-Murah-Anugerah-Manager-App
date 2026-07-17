@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <linearGradient id="sailun-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0051a8"/>
+      <stop offset="100%" stop-color="#0099db"/>
+    </linearGradient>
+  </defs>
+  <!-- Stylized 'S' icon - tech-forward, motion-inspired -->
+  <g transform="translate(15, 15)">
+    <!-- S-curve aerodynamic shape (thicker for small-size visibility) -->
+    <path d="M50 5 Q30 5 20 16 Q10 27 14 35 Q18 43 28 44 Q40 45 48 50 Q55 55 52 62 Q48 68 38 69 Q28 68 22 65" 
+          stroke="url(#sailun-grad)" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <!-- Motion accent lines -->
+    <path d="M36 18 L48 12 M32 40 L46 34 M32 60 L46 54" stroke="#0099db" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.35"/>
+    <!-- Tech dot accent -->
+    <circle cx="54" cy="10" r="4" fill="#0051a8" opacity="0.5"/>
+  </g>
+  <!-- SAILUN text -->
+  <text x="82" y="55" font-family="'Helvetica Neue', 'Arial Black', Arial, sans-serif" font-size="42" font-weight="800" fill="#0051a8" letter-spacing="2">SAILUN</text>
+  <!-- Tagline -->
+  <text x="82" y="78" font-family="Arial, sans-serif" font-size="13" fill="#0099db" letter-spacing="5" font-weight="600">SMART ENGINEERED</text>
+  <!-- Divider line -->
+  <line x1="82" y1="85" x2="350" y2="85" stroke="#0051a8" stroke-width="2" opacity="0.15" stroke-linecap="round"/>
+</svg>
