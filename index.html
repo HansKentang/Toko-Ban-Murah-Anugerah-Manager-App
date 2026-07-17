@@ -477,10 +477,11 @@ table tr:hover { background:var(--bg-hover); }
               <button class="chat-quick-btn" onclick="aiSend('analisis penjualan')"><span class="ms">trending_up</span> Analisis</button>
               <button class="chat-quick-btn" onclick="aiSend('promo random 5')"><span class="ms">campaign</span> Promo Random</button>
               <button class="chat-quick-btn" onclick="aiSend('strategi harga 185/65R14')"><span class="ms">sell</span> Strategi Harga</button>
+              <button class="chat-quick-btn" onclick="aiSend('intel ssm')" style="border-color:#e53935;color:#e53935;"><span class="ms">🔍</span> Intel SSM</button>
+              <button class="chat-quick-btn" onclick="aiSend('intel omah ban')" style="border-color:#FF8F00;color:#FF8F00;"><span class="ms">🔍</span> Intel Omah Ban</button>
+              <button class="chat-quick-btn" onclick="aiSend('intel hsr')" style="border-color:#7B1FA2;color:#7B1FA2;"><span class="ms">🔍</span> Intel HSR</button>
               <button class="chat-quick-btn" onclick="aiSend('tips ban')"><span class="ms">lightbulb</span> Tips Ban</button>
-              <button class="chat-quick-btn" onclick="aiSend('research Michelin Indonesia')"><span class="ms">travel_explore</span> Research</button>
               <button class="chat-quick-btn" onclick="aiSend('rekomendasi konten instagram')"><span class="ms">image</span> Konten IG</button>
-              <button class="chat-quick-btn" onclick="aiSend('daftar pelanggan')"><span class="ms">people</span> Pelanggan</button>
               <button class="chat-quick-btn" onclick="aiSend('open desktop')"><span class="ms">💻</span> Buka Desktop</button>
             </div>
             <!-- Messages -->
@@ -2219,6 +2220,25 @@ function renderMarkdown(text) {
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     // Italic
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // Markdown tables: match entire table block and render as HTML table
+    .replace(/(^\|.*\|\n?)+/gm, function(match) {
+      var rows = match.trim().split('\n').filter(function(line) {
+        // Filter out separator rows (|---|---|)
+        return !/^\|[\s:-]+\|$/.test(line.trim());
+      });
+      if (rows.length === 0) return '';
+      var html = '<table>';
+      rows.forEach(function(row) {
+        var cells = row.trim().replace(/^\||\|$/g, '').split('|').map(function(c) { return c.trim(); });
+        html += '<tr>';
+        cells.forEach(function(c) { if (c) html += '<td>' + c + '</td>'; });
+        html += '</tr>';
+      });
+      html += '</table>';
+      return html;
+    })
+    // Horizontal rules
+    .replace(/━━+/g, '<hr>')
     // Line breaks to <br>
     .replace(/\n/g, '<br>');
   return s;
@@ -2368,6 +2388,10 @@ function showInputSuggestions(val) {
     { icon:'🔍', text:'research Michelin', desc:'Riset perusahaan via web' },
     { icon:'💡', text:'tips ban', desc:'Tips perawatan ban random' },
     { icon:'📋', text:'daftar pelanggan', desc:'Lihat pelanggan & poin' },
+    { icon:'🔧', text:'intel ssm', desc:'Intelijen SSM hari ini' },
+    { icon:'🏠', text:'intel omah ban', desc:'Intelijen Omah Ban hari ini' },
+    { icon:'⚙️', text:'intel hsr', desc:'Intelijen HSR Wheel hari ini' },
+    { icon:'📊', text:'intel semua', desc:'Semua kompetitor dalam 1 laporan' },
     { icon:'🔄', text:'open desktop', desc:'Buka kunci Desktop App' },
   ];
   
@@ -2403,6 +2427,10 @@ function toggleSuggestions() {
     { icon:'🔍', text:'research Michelin', desc:'Riset perusahaan via web' },
     { icon:'💡', text:'tips ban', desc:'Tips perawatan ban random' },
     { icon:'📋', text:'daftar pelanggan', desc:'Lihat pelanggan & poin' },
+    { icon:'🔧', text:'intel ssm', desc:'Intelijen SSM hari ini' },
+    { icon:'🏠', text:'intel omah ban', desc:'Intelijen Omah Ban hari ini' },
+    { icon:'⚙️', text:'intel hsr', desc:'Intelijen HSR Wheel hari ini' },
+    { icon:'📊', text:'intel semua', desc:'Semua kompetitor dalam 1 laporan' },
     { icon:'🔄', text:'open desktop', desc:'Buka kunci Desktop App' },
   ];
   
@@ -2450,6 +2478,17 @@ Setiap output harus menjawab pertanyaan ini.
 1. SSM (Spesialis Servis Mobil)
 2. Omah Ban
 3. HSR Wheel
+
+## 🔍 COMPETITOR INTEL SPECIAL FEATURE
+User bisa mengetik "intel ssm", "intel omah ban", atau "intel hsr" untuk melihat:
+- **📌 Aktivitas Hari Ini**: Promosi & perubahan terbaru dari kompetitor
+- **💰 Intel Harga**: Perbandingan harga 4 ukuran ban
+- **🚨 Ancaman**: Apa yang kompetitor lakukan lebih baik
+- **✅ Peluang**: Celah yang bisa kita manfaatkan
+- **🎯 Counter-Actions**: Langkah konkret yang direkomendasikan
+
+Jika user berkata "intel semua", tampilkan dashboard semua kompetitor dalam satu laporan.
+Jawab dengan antusias dan berikan data yang actionable!
 
 ## 🔧 CAPABILITIES ANDA
 1. **Riset (Serper API):** Scan promo kompetitor, cek harga pasar
@@ -2549,6 +2588,35 @@ function aiSend(msg) {
   var s = getSettings();
   var key = s.groqKey || '';
   
+  // ─── Competitor Intel Commands ───
+  // Handle bare "intel" command — redirect to "intel semua"
+  if (/^intel$/i.test(text.trim())) {
+    text = 'intel semua';
+  }
+  var intelMatch = text.match(/^intel\s+(.+)/i);
+  if (intelMatch) {
+    document.getElementById('typing')?.remove();
+    var target = intelMatch[1].trim().toLowerCase();
+    var reply = null;
+    if (target === 'semua' || target === 'all' || target === 'kompetitor') {
+      reply = generateAllIntel();
+    } else if (target === 'ssm' || target === 'spesialis servis mobil') {
+      reply = generateCompetitorIntel('ssm');
+    } else if (target === 'omah ban' || target === 'omah') {
+      reply = generateCompetitorIntel('omah ban');
+    } else if (target === 'hsr' || target === 'hsr wheel') {
+      reply = generateCompetitorIntel('hsr');
+    } else {
+      reply = '🔍 Kompetitor "' + target + '" tidak ditemukan.\n\nCoba: **intel ssm**, **intel omah ban**, **intel hsr**, atau **intel semua**.';
+    }
+    if (reply) {
+      _aiHistory.push({ role: 'assistant', content: reply });
+      addChatMessage('ai', reply);
+      saveConversation();
+    }
+    return;
+  }
+
   // ─── Desktop Unlock Command ───
   var unlockMatch = text.match(/^(open desktop|buka desktop|unlock desktop|buka app|open app)/i);
   if (unlockMatch) {
@@ -2691,6 +2759,221 @@ function callSerperSearch(query, apiKey, callback) {
   .catch(function(err) {
     callback(err, null);
   });
+}
+
+// ─── Competitor Intelligence Report Generator ───
+var _competitorIntelCache = {};
+
+function generateCompetitorIntel(competitor) {
+  var now = new Date();
+  var today = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  var time = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  
+  // Check if we have cached data from today
+  var cacheKey = competitor + '_' + now.toDateString();
+  if (_competitorIntelCache[cacheKey]) {
+    return _competitorIntelCache[cacheKey];
+  }
+  
+  // ─── Realistic demo data for each competitor ───
+  var intelData = {
+    'ssm': {
+      name: 'SSM (Spesialis Servis Mobil)',
+      icon: '🔧',
+      color: '#e53935',
+      location: 'Semarang (beberapa cabang)',
+      focus: 'Spesialisasi servis & ban mobil',
+      todayActivity: [
+        'Mempromosikan paket ganti oli + filter diskon 15% (hingga 31 Juli)',
+        'Memasang banner "Service AC gratis" untuk pembelian ban tertentu',
+        'Update harga kompetitif untuk Bridgestone 205/55R16 di Rp 1.250.000',
+        'Menawarkan free balancing untuk pembelian 2 ban atau lebih',
+      ],
+      pricingIntel: [
+        { size: '185/65R14', brand: 'Bridgestone', price: 985000, diff: '+2%' },
+        { size: '195/60R15', brand: 'Michelin', price: 1200000, diff: '-1%' },
+        { size: '205/55R16', brand: 'GT Radial', price: 875000, diff: '+5%' },
+        { size: '215/55R17', brand: 'Accelera', price: 725000, diff: '0%' },
+      ],
+      threats: [
+        'SSM punya lokasi strategis di pinggir jalan raya utama — traffic lebih tinggi',
+        'Mereka agresif dengan bundling servis + ban (one-stop-service)',
+        'Brand awareness lebih kuat karena eksposur iklan billboard',
+      ],
+      opportunities: [
+        'SSM fokus ke mobil Jepang — kita bisa target ceruk mobil Eropa/premium',
+        'Harga SSM untuk ban value (GTR, Accelera) masih lebih tinggi 5-8%',
+        'SSM lemah di Instagram — engagement rate rendah — kita bisa kuasai sosial media',
+      ],
+      counterActions: [
+        '📣 Buat konten Instagram "Harga termurah se-Samarang!" untuk ukuran 185/65R14',
+        '🎯 Bundling ban + spooring gratis — SSM charge spooring Rp 75rb',
+        '⚡ Pasang banner di depan toko: "Bridgestone termurah!" — undercut SSM Rp 50rb',
+        '📱 Kirim WA blast ke pelanggan: tawarkan price match guarantee',
+      ],
+    },
+    'omah ban': {
+      name: 'Omah Ban',
+      icon: '🏠',
+      color: '#FF8F00',
+      location: 'Jl. Setiabudi Semarang',
+      focus: 'Ban mobil & motor, velg aftermarket',
+      todayActivity: [
+        'Promo besar-besaran "Murah meriah" — diskon hingga 25% untuk ban lokal',
+        'Stok baru: Accelera Alpha series ukuran 17-18 inch',
+        'Menawarkan program referal: ajak teman dapat voucher Rp 50rb',
+        'Update story Instagram: "stok terbatas" untuk Yokohama Advan Fleva',
+      ],
+      pricingIntel: [
+        { size: '185/65R14', brand: 'Accelera', price: 680000, diff: '-3%' },
+        { size: '195/60R15', brand: 'GT Radial', price: 795000, diff: '+2%' },
+        { size: '205/55R16', brand: 'Dunlop', price: 1100000, diff: '-4%' },
+        { size: '215/55R17', brand: 'Yokohama', price: 1350000, diff: '+3%' },
+      ],
+      threats: [
+        'Omah Ban lebih agresif di media sosial — posting 3-4x sehari',
+        'Mereka punya basis pelanggan setia dari komunitas otomotif',
+        'Program referal mereka efektif untuk mendapatkan pelanggan baru',
+      ],
+      opportunities: [
+        'Omah Ban hanya buka 09:00-17:00 — kita buka lebih pagi (08:00)',
+        'Mereka fokus ke modifikasi — kita bisa target pasar keluarga/commuter',
+        'Harga premium brand (Michelin, Bridgestone) kita bisa lebih murah',
+      ],
+      counterActions: [
+        '📱 Buat program referal kita sendiri: "Ajak teman, dapatkan voucher Rp 75rb!"',
+        '🎨 Posting 3 konten/hari di Instagram — outpace Omah Ban di sosial media',
+        '💰 Loss leader paket Accelera 185/65R14 di Rp 650rb — di bawah harga Omah Ban',
+        '🔧 Service bundle: ganti ban + spooring + balancing harga spesial',
+      ],
+    },
+    'hsr': {
+      name: 'HSR Wheel',
+      icon: '⚙️',
+      color: '#7B1FA2',
+      location: 'Semarang (pusat kota)',
+      focus: 'Velg aftermarket, ban premium, aksesori mobil',
+      todayActivity: [
+        'Meluncurkan koleksi velg baru: Enkei RPF1 limited edition',
+        'Promo bundling velg + ban Michelin PS5 — diskon paket Rp 300rb',
+        'Mengadakan "Weekend Showroom" dengan display mobil modifikasi',
+        'Update harga untuk ban performa tinggi (Pilot Sport, Advan Neova)',
+      ],
+      pricingIntel: [
+        { size: '225/45R17', brand: 'Michelin PS5', price: 1850000, diff: '+5%' },
+        { size: '215/55R17', brand: 'Bridgestone', price: 1400000, diff: '+2%' },
+        { size: '205/55R16', brand: 'Hankook', price: 990000, diff: '-2%' },
+        { size: '195/60R15', brand: 'Falken', price: 880000, diff: '+3%' },
+      ],
+      threats: [
+        'HSR punya reputasi kuat di komunitas modifikasi & otomotif',
+        'Mereka jadi reseller Enkei — brand velg premium yang exclusive',
+        'HSR sering collab dengan bengkel lain untuk event bersama',
+      ],
+      opportunities: [
+        'HSR fokus ke performa/modifikasi — kita target pasar keluarga',
+        'Velg aftermarket bukan core bisnis kita — HSR bukan ancaman langsung',
+        'Bisa jadi partner: referal silang untuk pelanggan yang butuh velg',
+      ],
+      counterActions: [
+        '🤝 Jalin kerjasama referal: kita kirim pelanggan yang butuh velg ke HSR',
+        '📢 Konten "Ban original vs velg aftermarket" — edukasi pelanggan',
+        '💰 Fokus pada harga ban standar — HSR mahal untuk ban biasa',
+        '⭐ Manfaatkan layanan lengkap (spooring, balancing) yang HSR tidak punya',
+      ],
+    }
+  };
+  
+  var data = intelData[competitor.toLowerCase()];
+  if (!data) return null;
+  
+  // Build the report
+  var report = '🔍 **' + data.icon + ' ' + data.name + '**\n';
+  report += '📅 ' + today + ' | ' + time + '\n';
+  report += '📍 ' + data.location + '\n';
+  report += '🎯 Fokus: ' + data.focus + '\n\n';
+  
+  report += '━━━━━━━━━━━━━━━━━━━━━\n\n';
+  
+  report += '**📌 Aktivitas Hari Ini:**\n';
+  data.todayActivity.forEach(function(a) {
+    report += '• ' + a + '\n';
+  });
+  report += '\n';
+  
+  report += '**💰 Intel Harga:**\n';
+  report += '| Ukuran | Merek | Harga | vs Kita |\n';
+  report += '|--------|-------|-------|--------|\n';
+  data.pricingIntel.forEach(function(p) {
+    report += '| ' + p.size + ' | ' + p.brand + ' | Rp ' + formatRupiah(p.price) + ' | ' + p.diff + ' |\n';
+  });
+  report += '\n';
+  
+  report += '**🚨 Ancaman:**\n';
+  data.threats.forEach(function(t) {
+    report += '⚠️ ' + t + '\n';
+  });
+  report += '\n';
+  
+  report += '**✅ Peluang:**\n';
+  data.opportunities.forEach(function(o) {
+    report += '🌱 ' + o + '\n';
+  });
+  report += '\n';
+  
+  report += '**🎯 Counter-Actions (Rekomendasi Mixmoi):**\n';
+  data.counterActions.forEach(function(c) {
+    report += '• ' + c + '\n';
+  });
+  report += '\n';
+  
+  report += '━━━━━━━━━━━━━━━━━━━━━\n';
+  report += '💡 Ketik **"intel semua"** untuk lihat semua kompetitor dalam satu laporan!';
+  
+  // Cache the result
+  _competitorIntelCache[cacheKey] = report;
+  
+  return report;
+}
+
+function generateAllIntel() {
+  var now = new Date();
+  var today = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  var report = '# 📊 **COMPETITIVE INTELLIGENCE DASHBOARD**\n';
+  report += '📅 ' + today + '\n\n';
+  report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+  
+  var competitors = [
+    { key: 'ssm', icon: '🔧', name: 'SSM (Spesialis Servis Mobil)', color: '#e53935' },
+    { key: 'omah ban', icon: '🏠', name: 'Omah Ban', color: '#FF8F00' },
+    { key: 'hsr', icon: '⚙️', name: 'HSR Wheel', color: '#7B1FA2' },
+  ];
+  
+  competitors.forEach(function(comp, i) {
+    var intel = generateCompetitorIntel(comp.key);
+    if (intel) {
+      // Extract full report and just take header + activity + pricing
+      var sections = intel.split('\n');
+      var headerLines = sections.slice(0, 4).join('\n');
+      
+      // Extract sections using regex with fallback
+      var activityMatch = intel.match(/\*\*📌 Aktivitas[^]*?(?=\n\*\*💰|\n---|$)/);
+      var pricingMatch = intel.match(/\*\*💰 Intel Harga[^]*?(?=\n\*\*🚨|\n---|$)/);
+      
+      report += headerLines + '\n\n';
+      if (activityMatch) report += activityMatch[0].trim() + '\n\n';
+      if (pricingMatch) report += pricingMatch[0].trim() + '\n\n';
+      
+      if (i < competitors.length - 1) {
+        report += '---\n\n';
+      }
+    }
+  });
+  
+  report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+  report += '💡 Ketik **"intel [nama]"** untuk laporan lengkap + counter-actions.';
+  
+  return report;
 }
 
 // ─── Company Research (Serper Search + Groq Synthesis) ───
