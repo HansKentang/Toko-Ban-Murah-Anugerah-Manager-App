@@ -586,6 +586,7 @@ table tr:hover { background:var(--bg-hover); }
           <button class="btn btn-outline mt-2" onclick="copyText('dailySummaryText')"><span class="ms sm">content_copy</span> Copy</button>
         </div>
       </div>
+      <div class="page" id="page-desktop"></div>
       <div class="page" id="page-qr">
         <div class="grid-2">
           <div class="card">
@@ -1213,7 +1214,7 @@ function navigate(page) {
   var nav = document.querySelector('.nav-item[data-page="' + page + '"]');
   if (nav) nav.classList.add('active');
   document.querySelector('.sidebar.open') && toggleSidebar();
-  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms">🐱</span> Mixmoi', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog' };
+  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms">🐱</span> Mixmoi', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog', desktop:'<span class=\"ms\">💻</span> Desktop App' };
   document.getElementById('pageTitle').innerHTML = (titles[page] || '<span class="ms">dashboard</span> <span>Dashboard</span>');
   if (page === 'dashboard') renderDashboard();
   if (page === 'inventory') renderInventory();
@@ -1224,6 +1225,7 @@ function navigate(page) {
   if (page === 'whatsapp') { waUpdatePreview(); waListTemplates(); }
   if (page === 'social') { genCaption(); genContentPlan(); }
   if (page === 'qr') genQRCatalog();
+  if (page === 'desktop') renderDesktopPage();
 }
 
 function setCabang(cabang) {
