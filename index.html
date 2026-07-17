@@ -235,6 +235,11 @@ table tr:hover { background:var(--bg-hover); }
 .chat-bubble ul, .chat-bubble ol { margin:4px 0; padding-left:20px; }
 .chat-bubble li { margin:2px 0; }
 .chat-bubble hr { border:none; border-top:1px solid var(--border-light); margin:8px 0; }
+.chat-bubble blockquote { border-left:3px solid var(--primary-soft); margin:6px 0; padding:4px 12px; background:var(--bg); border-radius:0 6px 6px 0; font-style:italic; color:var(--text-light); }
+.chat-bubble a { color:var(--primary-soft); text-decoration:underline; font-weight:500; }
+.chat-bubble a:hover { color:var(--primary); }
+.chat-bubble img { max-width:100%; border-radius:8px; margin:4px 0; }
+.chat-bubble s { text-decoration:line-through; opacity:0.6; }
 
 /* Typing indicator enhanced */
 .chat-typing { display:flex; gap:4px; padding:10px 16px; background:white; border-radius:16px; border-bottom-left-radius:4px; align-self:flex-start; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04); margin-left:40px; }
@@ -242,6 +247,21 @@ table tr:hover { background:var(--bg-hover); }
 .chat-typing span:nth-child(2) { animation-delay:0.2s; }
 .chat-typing span:nth-child(3) { animation-delay:0.4s; }
 @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* Date separator for chat */
+.chat-date-sep { text-align:center; padding:8px 0 4px; position:relative; }
+.chat-date-sep::before { content:''; position:absolute; left:0; right:0; top:50%; height:1px; background:var(--border-light); }
+.chat-date-sep span { display:inline-block; background:var(--bg); padding:2px 14px; font-size:10px; font-weight:600; color:var(--text-muted); position:relative; z-index:1; border-radius:10px; border:1px solid var(--border-light); }
+
+/* Improved timestamp */
+.chat-ts { font-size:9px; color:var(--text-muted); margin-top:6px; text-align:right; opacity:0.7; display:flex; align-items:center; justify-content:flex-end; gap:4px; }
+.chat-ts .ts-dot { width:3px; height:3px; border-radius:50%; background:var(--text-muted); display:inline-block; opacity:0.4; }
+.chat-ts .ts-relative { font-size:9px; opacity:0.8; }
+
+/* Saved indicator animation */
+@keyframes savedPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+.status-saved { animation:savedPulse 2s infinite; color:var(--text-muted); font-size:10px; display:flex; align-items:center; gap:3px; }
+.status-saved .ms { font-size:12px; }
 
 /* Smart suggestions */
 #aiSuggestions { position:absolute; bottom:100%; left:0; right:70px; background:white; border-radius:12px; box-shadow:0 -4px 20px rgba(0,0,0,0.1),0 4px 20px rgba(0,0,0,0.06); border:1px solid var(--border); display:none; max-height:200px; overflow-y:auto; z-index:10; margin-bottom:6px; }
@@ -466,6 +486,7 @@ table tr:hover { background:var(--bg-hover); }
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
               <span id="aiMsgCount" style="font-size:10px;opacity:0.6;padding:2px 8px;background:rgba(255,255,255,0.08);border-radius:10px;">0 pesan</span>
+              <button onclick="exportChat()" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.1);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;font-size:13px;" title="Export percakapan">📥</button>
               <button onclick="resetChat()" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.1);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;font-size:14px;" title="Reset percakapan">🗑</button>
             </div>
           </div>
@@ -492,6 +513,7 @@ table tr:hover { background:var(--bg-hover); }
               <span class="status-item"><span class="status-dot-sm gray" id="statusGroqDot"></span><span id="statusGroqText">Groq: tidak aktif</span></span>
               <span class="status-item"><span id="statusModelText">Model: -</span></span>
               <span class="status-item" id="statusMsgCounter">💬 0 pesan</span>
+              <span class="status-item status-saved" id="statusSaved"><span class="ms" style="font-size:12px;">check_circle</span> Tersimpan</span>
             </div>
             <!-- Input area -->
             <div class="chat-input-area" style="position:relative;">
@@ -2193,8 +2215,17 @@ const CONV_SAVE_KEY = 'tbma_ai_conversation';
 
 function saveConversation() {
   try {
-    var data = { history: _aiHistory, ts: Date.now() };
+    var now = new Date();
+    // Store messages with timestamps
+    var data = { history: _aiHistory, ts: now.toISOString(), version: 2 };
     localStorage.setItem(CONV_SAVE_KEY, JSON.stringify(data));
+    // Show save indicator
+    var savedEl = document.getElementById('statusSaved');
+    if (savedEl) {
+      savedEl.style.opacity = '1';
+      clearTimeout(savedEl._saveTimeout);
+      savedEl._saveTimeout = setTimeout(function() { savedEl.style.opacity = '0.5'; }, 2000);
+    }
   } catch(e) { /* ignore */ }
 }
 
@@ -2212,20 +2243,59 @@ function loadConversation() {
   return false;
 }
 
+function exportChat() {
+  if (!_aiHistory || _aiHistory.length === 0) {
+    showToast('warning', 'Tidak ada percakapan untuk di-export');
+    return;
+  }
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  var lines = [
+    '═══════════════════════════════════════════',
+    '  TOKO BAN MURAH ANUGERAH — Chat dengan Mixmoi',
+    '  Tanggal: ' + dateStr,
+    '  Total: ' + Math.ceil(_aiHistory.length / 2) + ' pesan',
+    '═══════════════════════════════════════════',
+    ''
+  ];
+  
+  for (var i = 0; i < _aiHistory.length; i++) {
+    var m = _aiHistory[i];
+    var prefix = m.role === 'user' ? '👤 ANDA' : '😺 Mixmoi';
+    var ts = m.ts ? new Date(m.ts).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) : '';
+    lines.push('── ' + prefix + ' ──' + (ts ? ' (' + ts + ')' : ''));
+    lines.push(m.content);
+    lines.push('');
+  }
+  
+  lines.push('═══════════════════════════════════════════');
+  lines.push('  Di-export pada ' + now.toLocaleString('id-ID'));
+  lines.push('═══════════════════════════════════════════');
+  
+  var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mixmoi-chat-' + now.toISOString().slice(0,10) + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('success', '✅ Chat di-export!');
+}
+
 function renderMarkdown(text) {
   var s = text
-    // Code blocks first
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    // Escape HTML first
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Code blocks first (preserve them)
+    .replace(/```(\w*)\n([\s\S]*?)```/g, function(m, lang, code) {
+      return '<pre><code>' + code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>') + '</code></pre>';
+    })
     // Inline code
     .replace(/`([^`]+)`/g, '<code>$1</code>')
-    // Bold
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     // Markdown tables: match entire table block and render as HTML table
     .replace(/(^\|.*\|\n?)+/gm, function(match) {
       var rows = match.trim().split('\n').filter(function(line) {
-        // Filter out separator rows (|---|---|)
         return !/^\|[\s:-]+\|$/.test(line.trim());
       });
       if (rows.length === 0) return '';
@@ -2239,24 +2309,107 @@ function renderMarkdown(text) {
       html += '</table>';
       return html;
     })
-    // Horizontal rules
-    .replace(/━━+/g, '<hr>')
+    // Blockquotes
+    .replace(/^&gt;\s?(.+)$/gm, '<blockquote>$1</blockquote>')
+    // Unordered lists (* item or - item)
+    .replace(/^[*\-]\s+(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+      return '<ul>' + match.replace(/\n/g, '') + '</ul>';
+    })
+    // Ordered lists (1. item)
+    .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+      return '<ol>' + match.replace(/\n/g, '') + '</ol>';
+    })
+    // Links [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    // Images ![alt](url)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:4px 0;">')
+    // Bold
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // Strikethrough
+    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
+    // Horizontal rules (---, ___, or unicode)
+    .replace(/^[-_=]{3,}$|━{2,}/gm, '<hr>')
     // Line breaks to <br>
     .replace(/\n/g, '<br>');
   return s;
 }
 
-function formatTimestamp(date) {
-  return date.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+// ─── Relative Time Formatting ───
+var _lastMsgDate = null;
+
+function formatRelativeTime(date) {
+  var now = new Date();
+  var diff = now - date;
+  var sec = Math.floor(diff / 1000);
+  var min = Math.floor(sec / 60);
+  var hr = Math.floor(min / 60);
+  var days = Math.floor(hr / 24);
+  
+  var timeStr = date.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  
+  if (sec < 10) return { relative: 'baru saja', full: timeStr, isToday: true };
+  if (min < 1) return { relative: 'baru saja', full: timeStr, isToday: true };
+  if (min < 60) return { relative: min + 'm lalu', full: timeStr, isToday: true };
+  if (hr < 24) return { relative: hr + 'j lalu', full: timeStr, isToday: true };
+  
+  var isYesterday = false;
+  var yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) isYesterday = true;
+  
+  if (isYesterday) return { relative: 'Kemarin ' + timeStr, full: timeStr, isToday: false };
+  if (days < 7) return { relative: days + ' hari lalu', full: timeStr, isToday: false };
+  
+  return { relative: date.toLocaleDateString('id-ID', { day:'numeric', month:'short' }) + ' ' + timeStr, full: timeStr, isToday: false };
+}
+
+function getDateLabel(date) {
+  var now = new Date();
+  var today = now.toDateString();
+  var yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  if (date.toDateString() === today) return 'Hari Ini';
+  if (date.toDateString() === yesterday.toDateString()) return 'Kemarin';
+  return date.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+function maybeAddDateSeparator(date) {
+  var msgs = document.getElementById('chatMessages');
+  if (!msgs) return;
+  
+  var dateStr = date.toDateString();
+  if (_lastMsgDate === dateStr) return; // Same day, no separator needed
+  
+  _lastMsgDate = dateStr;
+  var label = getDateLabel(date);
+  var sep = document.createElement('div');
+  sep.className = 'chat-date-sep';
+  sep.innerHTML = '<span>' + label + '</span>';
+  msgs.appendChild(sep);
 }
 
 function addChatMessage(role, text, opts) {
   opts = opts || {};
   var msgs = document.getElementById('chatMessages');
-  var ts = opts.timestamp || formatTimestamp(new Date());
+  var msgDate = opts.date ? new Date(opts.date) : new Date();
+  
+  // Add date separator if day changed
+  maybeAddDateSeparator(msgDate);
+  
+  var timeInfo = formatRelativeTime(msgDate);
+  var ts = opts.timestamp || timeInfo.full;
+  var tsRelative = timeInfo.relative;
   
   var group = document.createElement('div');
   group.className = 'chat-msg-group ' + (role === 'user' ? 'user-group' : 'ai-group');
+  
+  // Store the message date for history
+  group.setAttribute('data-ts', msgDate.toISOString());
   
   // Avatar
   var avatar = document.createElement('div');
@@ -2301,10 +2454,10 @@ function addChatMessage(role, text, opts) {
     bubble.appendChild(copyBtn);
   }
   
-  // Timestamp
+  // Timestamp with relative time
   var tsEl = document.createElement('div');
   tsEl.className = 'chat-ts';
-  tsEl.textContent = ts;
+  tsEl.innerHTML = '<span>' + ts + '</span><span class="ts-dot"></span><span class="ts-relative">' + tsRelative + '</span>';
   bubble.appendChild(tsEl);
   
   wrap.appendChild(bubble);
@@ -2615,8 +2768,9 @@ function aiSend(msg) {
   var msgs = document.getElementById('chatMessages');
   
   // Add user message with avatar
+  var now = new Date();
   addChatMessage('user', text);
-  _aiHistory.push({ role: 'user', content: text });
+  _aiHistory.push({ role: 'user', content: text, ts: now.toISOString() });
   saveConversation();
   
   // Show typing indicator
@@ -2649,7 +2803,7 @@ function aiSend(msg) {
       reply = '🔍 Kompetitor "' + target + '" tidak ditemukan.\n\nCoba: **intel ssm**, **intel omah ban**, **intel hsr**, atau **intel semua**.';
     }
     if (reply) {
-      _aiHistory.push({ role: 'assistant', content: reply });
+      _aiHistory.push({ role: 'assistant', content: reply, ts: new Date().toISOString() });
       addChatMessage('ai', reply);
       saveConversation();
     }
@@ -2669,7 +2823,7 @@ function aiSend(msg) {
       '2. Jalankan: **python main.py**\n' +
       '3. Desktop App akan muncul dengan semua tools bisnis + Mixmoi 🐱\n\n' +
       'Atau klik **💻 Desktop App** di sidebar untuk panduan lengkapnya!';
-    _aiHistory.push({ role: 'assistant', content: unlockReply });
+    _aiHistory.push({ role: 'assistant', content: unlockReply, ts: new Date().toISOString() });
     addChatMessage('ai', unlockReply);
     saveConversation();
     showToast('success', '🔓 Desktop App terbuka!');
@@ -2688,7 +2842,7 @@ function aiSend(msg) {
       msgs.scrollTop = msgs.scrollHeight;
       callCompanyResearch(company, serperKey, key, s.groqModel, function(reply) {
         document.getElementById('typing')?.remove();
-        _aiHistory.push({ role: 'assistant', content: reply });
+        _aiHistory.push({ role: 'assistant', content: reply, ts: new Date().toISOString() });
         addChatMessage('ai', reply);
         saveConversation();
       });
@@ -2696,7 +2850,7 @@ function aiSend(msg) {
     } else if (researchMatch && !serperKey) {
       document.getElementById('typing')?.remove();
       var noKeyMsg = 'Untuk Company Research, Anda perlu mengatur **Serper API Key** di Pengaturan terlebih dahulu.\n\nKlik icon ⚙️ di pojok kiri bawah → masukkan Serper API Key → Simpan.';
-      _aiHistory.push({ role: 'assistant', content: noKeyMsg });
+      _aiHistory.push({ role: 'assistant', content: noKeyMsg, ts: new Date().toISOString() });
       addChatMessage('ai', noKeyMsg);
       saveConversation();
       return;
@@ -2704,7 +2858,7 @@ function aiSend(msg) {
     // ─── Groq AI Mode ───
     callGroqAI(text, s, function(reply) {
       document.getElementById('typing')?.remove();
-      _aiHistory.push({ role: 'assistant', content: reply });
+      _aiHistory.push({ role: 'assistant', content: reply, ts: new Date().toISOString() });
       addChatMessage('ai', reply);
       saveConversation();
     });
@@ -2715,7 +2869,7 @@ function aiSend(msg) {
       'Untuk menggunakan Mixmoi, Anda perlu mengatur **Groq API Key** terlebih dahulu.\n\n' +
       '⚙️ Buka **Pengaturan** (icon gear di pojok kiri bawah) → masukkan Groq API Key → Simpan.\n\n' +
       '💡 Dapatkan API Key gratis di: **console.groq.com**';
-    _aiHistory.push({ role: 'assistant', content: helpMsg });
+    _aiHistory.push({ role: 'assistant', content: helpMsg, ts: new Date().toISOString() });
     addChatMessage('ai', helpMsg);
     saveConversation();
   }
