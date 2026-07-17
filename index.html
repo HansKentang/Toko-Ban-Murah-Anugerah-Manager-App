@@ -284,7 +284,7 @@ table tr:hover { background:var(--bg-hover); }
 .settings-status-dot.green { background:#44dd44; box-shadow:0 0 6px rgba(68,221,68,0.4); }
 .settings-status-dot.yellow { background:#ffdd44; box-shadow:0 0 6px rgba(255,221,68,0.4); }
 .settings-status-dot.gray { background:#888; }
-.settings-groq-info { font-size:11px; color:var(--text-muted); line-height:1.5; padding:0 4px; }
+.settings-genai-info { font-size:11px; color:var(--text-muted); line-height:1.5; padding:0 4px; }
 .close-settings { display:flex; align-items:center; gap:6px; padding:8px 18px; border-radius:100px; background:var(--primary-soft); color:white; border:none; font-size:12px; font-weight:600; cursor:pointer; transition:var(--transition); font-family:inherit; }
 .close-settings:hover { background:var(--primary); box-shadow:0 4px 12px rgba(46,125,50,0.2); }
 .close-settings:active { transform:scale(0.96); }
@@ -641,25 +641,25 @@ table tr:hover { background:var(--bg-hover); }
       <button class="modal-close" onclick="closeModal('settingsModal')"><span class="ms">close</span></button>
     </div>
     <div class="modal-body">
-      <!-- Groq AI Section -->
+      <!-- Gemini AI Section -->
       <div class="settings-section">
-        <div class="settings-section-title"><span class="ms">psychology</span> AI & Groq</div>
+        <div class="settings-section-title"><span class="ms">psychology</span> AI & Gemini</div>
         <div class="settings-key-wrap">
-          <span id="settingsGroqDot" class="settings-status-dot gray"></span>
-          <input class="settings-key-input" id="settingsGroqKey" type="password" placeholder="Masukkan Groq API Key...">
-          <button class="btn btn-sm btn-outline" onclick="saveGroqKey()" style="white-space:nowrap;"><span class="ms sm">save</span> Simpan</button>
-          <button class="btn btn-sm btn-success" onclick="testGroqKey()" style="white-space:nowrap;"><span class="ms sm">check_circle</span> Test</button>
+          <span id="settingsGenaiDot" class="settings-status-dot gray"></span>
+          <input class="settings-key-input" id="settingsGenaiKey" type="password" placeholder="Masukkan Gemini API Key...">
+          <button class="btn btn-sm btn-outline" onclick="saveGenaiKey()" style="white-space:nowrap;"><span class="ms sm">save</span> Simpan</button>
+          <button class="btn btn-sm btn-success" onclick="testGenaiKey()" style="white-space:nowrap;"><span class="ms sm">check_circle</span> Test</button>
         </div>
-        <div class="settings-groq-info" style="margin-top:8px;">
-          <span id="settingsGroqStatus"><span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Groq AI tidak aktif</span>
+        <div class="settings-genai-info" style="margin-top:8px;">
+          <span id="settingsGenaiStatus"><span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Gemini AI tidak aktif</span>
         </div>
         <div style="margin-top:6px;">
           <div class="settings-row">
             <div class="settings-row-label"><span class="ms">smart_toy</span> Model AI</div>
-            <select class="settings-input" id="settingsGroqModel" style="width:auto;text-align:left;">
-              <option value="llama-3.1-8b-instant">Llama 3.1 8B (Cepat)</option>
-              <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Akurat)</option>
-              <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+            <select class="settings-input" id="settingsGenaiModel" style="width:auto;text-align:left;">
+              <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (Cepat)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Akurat)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
             </select>
           </div>
         </div>
@@ -930,13 +930,13 @@ function saveSettings(s) {
 
 function openSettingsModal() {
   var s = getSettings();
-  // Load Groq key
-  if (s.groqKey) {
-    document.getElementById('settingsGroqKey').value = s.groqKey;
-    updateGroqStatus();
+  // Load Gemini key
+  if (s.genaiKey) {
+    document.getElementById('settingsGenaiKey').value = s.genaiKey;
+    updateGenaiStatus();
   }
-  if (s.groqModel) {
-    document.getElementById('settingsGroqModel').value = s.groqModel;
+  if (s.genaiModel) {
+    document.getElementById('settingsGenaiModel').value = s.genaiModel;
   }
   // Load business info
   if (s.storeName) document.getElementById('settingsStoreName').value = s.storeName;
@@ -960,47 +960,47 @@ function openSettingsModal() {
   document.body.style.overflow = 'hidden';
 }
 
-function updateGroqStatus() {
+function updateGenaiStatus() {
   var s = getSettings();
-  var dot = document.getElementById('settingsGroqDot');
-  var status = document.getElementById('settingsGroqStatus');
-  var key = s.groqKey || '';
-  if (key && key.length > 10 && key !== 'YOUR_GROQ_API_KEY_HERE') {
+  var dot = document.getElementById('settingsGenaiDot');
+  var status = document.getElementById('settingsGenaiStatus');
+  var key = s.genaiKey || '';
+  if (key && key.length > 10 && key !== 'YOUR_GEMINI_API_KEY_HERE') {
     dot.className = 'settings-status-dot yellow';
     status.innerHTML = '<span class="settings-status-dot yellow" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> API Key tersimpan — siap digunakan';
   } else {
     dot.className = 'settings-status-dot gray';
-    status.innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Groq AI tidak aktif';
+    status.innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Belum terhubung — Gemini AI tidak aktif';
   }
 }
 
-function saveGroqKey() {
+function saveGenaiKey() {
   var s = getSettings();
-  s.groqKey = document.getElementById('settingsGroqKey').value;
-  s.groqModel = document.getElementById('settingsGroqModel').value;
+  s.genaiKey = document.getElementById('settingsGenaiKey').value;
+  s.genaiModel = document.getElementById('settingsGenaiModel').value;
   saveSettings(s);
-  updateGroqStatus();
-  showToast('success', 'Groq API Key tersimpan!');
+  updateGenaiStatus();
+  showToast('success', 'Gemini API Key tersimpan!');
 }
 
-function testGroqKey() {
+function testGenaiKey() {
   var s = getSettings();
-  var key = document.getElementById('settingsGroqKey').value || s.groqKey || '';
-  if (!key || key.length < 10 || key === 'YOUR_GROQ_API_KEY_HERE') {
-    showToast('error', 'Masukkan Groq API Key terlebih dahulu');
+  var key = document.getElementById('settingsGenaiKey').value || s.genaiKey || '';
+  if (!key || key.length < 10 || key === 'YOUR_GEMINI_API_KEY_HERE') {
+    showToast('error', 'Masukkan Gemini API Key terlebih dahulu');
     return;
   }
-  s.groqKey = key;
+  s.genaiKey = key;
   saveSettings(s);
-  var dot = document.getElementById('settingsGroqDot');
-  // Validate format: Groq keys start with 'gsk_' and are 50+ chars
-  if (key.startsWith('gsk_') && key.length >= 50) {
+  var dot = document.getElementById('settingsGenaiDot');
+  // Validate format: Gemini keys start with 'AIza'
+  if (key.startsWith('AIza') && key.length >= 20) {
     dot.className = 'settings-status-dot green';
-    document.getElementById('settingsGroqStatus').innerHTML = '<span class="settings-status-dot green" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Key valid! Terhubung via Python backend nanti';
+    document.getElementById('settingsGenaiStatus').innerHTML = '<span class="settings-status-dot green" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Key valid! Terhubung via Python backend nanti';
     showToast('success', 'Key format valid!');
   } else {
     dot.className = 'settings-status-dot gray';
-    document.getElementById('settingsGroqStatus').innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Format Key tidak valid (harus gsk_...)';
+    document.getElementById('settingsGenaiStatus').innerHTML = '<span class="settings-status-dot gray" style="display:inline-block;vertical-align:middle;margin-right:4px;"></span> Format Key tidak valid (harus AIza...)';
     showToast('error', 'Format Key salah');
   }
 }
@@ -1954,11 +1954,11 @@ function aiSend(msg) {
   msgs.scrollTop = msgs.scrollHeight;
   
   var s = getSettings();
-  var key = s.groqKey || '';
+  var key = s.genaiKey || '';
   
-  if (key && key.startsWith('gsk_') && key.length >= 50) {
-    // ─── Groq AI Mode ───
-    callGroqAI(text, s, function(reply) {
+  if (key && key.startsWith('AIza') && key.length >= 20) {
+    // ─── Gemini AI Mode ───
+    callGenaiAI(text, s, function(reply) {
       document.getElementById('typing')?.remove();
       var formatted = reply.replace(/\n/g, '<br>');
       msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
@@ -1969,8 +1969,8 @@ function aiSend(msg) {
     // ─── Belum ada API Key ───
     document.getElementById('typing')?.remove();
     var helpMsg = '<div class="chat-bubble ai">' +
-      '<span class="ms sm" style="vertical-align:middle">psychology</span> <strong>Groq AI belum aktif!</strong><br><br>' +
-      'Untuk menggunakan AI Command, Anda perlu mengatur <strong>Groq API Key</strong> terlebih dahulu.<br><br>' +
+      '<span class="ms sm" style="vertical-align:middle">psychology</span> <strong>Gemini AI belum aktif!</strong><br><br>' +
+      'Untuk menggunakan AI Command, Anda perlu mengatur <strong>Gemini API Key</strong> terlebih dahulu.<br><br>' +
       '<span class="ms sm" style="vertical-align:middle">settings</span> Buka <strong>Pengaturan</strong> (icon gear di pojok kiri bawah) → masukkan API Key → Simpan' +
       '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
     msgs.innerHTML += helpMsg;
@@ -1978,32 +1978,42 @@ function aiSend(msg) {
   }
 }
 
-// ─── Groq API Call ───
-function callGroqAI(userText, settings, callback) {
-  var model = settings.groqModel || 'llama-3.1-8b-instant';
-  var key = settings.groqKey;
+// ─── Gemini API Call ───
+function callGenaiAI(userText, settings, callback) {
+  var model = settings.genaiModel || 'gemini-2.0-flash-lite';
+  var key = settings.genaiKey;
   
-  // Build messages with system prompt + context + history
-  var messages = [
-    { role: 'system', content: AI_SYSTEM_PROMPT + buildBusinessContext() }
-  ];
-  
-  // Add conversation history (keep last N exchanges)
+  // Build contents array with system instruction + history
+  // Convert chat history to Gemini format
+  var contents = [];
   var history = _aiHistory.slice(-(AI_MAX_HISTORY * 2));
-  history.forEach(function(m) { messages.push(m); });
+  history.forEach(function(m) {
+    contents.push({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    });
+  });
+  // Add current user message
+  contents.push({
+    role: 'user',
+    parts: [{ text: userText }]
+  });
   
-  fetch('https://api.groq.com/openai/v1/chat/completions', {
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + key
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: model,
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 2048,
-      top_p: 0.95
+      system_instruction: {
+        parts: [{ text: AI_SYSTEM_PROMPT + buildBusinessContext() }]
+      },
+      contents: contents,
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+        topP: 0.95
+      }
     })
   })
   .then(function(r) {
@@ -2013,8 +2023,8 @@ function callGroqAI(userText, settings, callback) {
   .then(function(data) {
     if (data.error) {
       callback('Maaf, terjadi kesalahan: ' + (data.error.message || 'Unknown error'));
-    } else if (data.choices && data.choices[0] && data.choices[0].message) {
-      callback(data.choices[0].message.content);
+    } else if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+      callback(data.candidates[0].content.parts[0].text);
     } else {
       callback('Maaf, saya tidak bisa memproses permintaan saat ini. Coba lagi ya!');
     }
