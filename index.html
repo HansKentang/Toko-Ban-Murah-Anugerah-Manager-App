@@ -67,6 +67,12 @@ body {
 .sidebar-footer .status-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; flex-shrink:0; animation:pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.5} }
 .sidebar-footer .version { color:rgba(255,255,255,0.35); font-size:11px; }
+.nav-item.desktop-locked { opacity:0.5; cursor:default; pointer-events:none; }
+.nav-item.desktop-locked .nav-icon { filter:grayscale(0.5); }
+.nav-item.desktop-unlocked { color:rgba(255,255,255,0.8); }
+.nav-item.desktop-unlocked:hover { background:rgba(255,255,255,0.08); color:white; }
+.desktop-badge-locked { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:8px; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.5); margin-left:auto; letter-spacing:0.5px; }
+.desktop-badge-unlocked { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:8px; background:rgba(76,175,80,0.3); color:#81c784; margin-left:auto; letter-spacing:0.5px; }
 .sidebar-footer-spacer { flex:1; }
 .sidebar-settings-btn { width:28px; height:28px; border-radius:8px; border:none; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition); flex-shrink:0; }
 .sidebar-settings-btn:hover { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.8); transform:rotate(30deg); }
@@ -339,6 +345,8 @@ table tr:hover { background:var(--bg-hover); }
       <button class="nav-item" data-page="loyalty" onclick="navigate('loyalty')"><span class="nav-icon"><span class="ms">star</span></span>Loyalty Program</button>
       <button class="nav-item" data-page="sheets" onclick="navigate('sheets')"><span class="nav-icon"><span class="ms">description</span></span>Excel Auto</button>
       <button class="nav-item" data-page="qr" onclick="navigate('qr')"><span class="nav-icon"><span class="ms">qr_code_scanner</span></span>QR Catalog</button>
+      <div class="nav-label">Lainnya</div>
+      <button class="nav-item desktop-locked" id="desktopNavBtn" onclick="toggleDesktopApp()"><span class="nav-icon"><span class="ms">🔒</span></span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span></button>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-settings-btn" onclick="openSettingsModal()" title="Pengaturan"><span class="ms">settings</span></button><span class="sidebar-footer-spacer"></span><span class="status-dot"></span><span class="version">v1.0 · Semua siap</span></div>
   </aside>
@@ -1115,6 +1123,85 @@ function toggleSidebar() {
   var o = document.getElementById('sidebarOverlay');
   s.classList.toggle('open');
   o.classList.toggle('open');
+}
+
+// ─── Desktop App Lock ───
+function isDesktopLocked() {
+  var val = localStorage.getItem('tbma_desktop_locked');
+  return val === null || val === 'true';
+}
+function unlockDesktop() {
+  localStorage.setItem('tbma_desktop_locked', 'false');
+  updateDesktopUI();
+}
+function lockDesktop() {
+  localStorage.setItem('tbma_desktop_locked', 'true');
+  updateDesktopUI();
+}
+function toggleDesktopApp() {
+  if (isDesktopLocked()) {
+    showToast('error', '🔒 Desktop App masih terkunci! Ketik "open desktop" di Mixmoi untuk membuka.');
+    return;
+  }
+  navigate('desktop');
+}
+function updateDesktopUI() {
+  var btn = document.getElementById('desktopNavBtn');
+  var label = document.getElementById('desktopNavLabel');
+  var badge = document.getElementById('desktopBadge');
+  if (!btn || !label || !badge) return;
+  if (isDesktopLocked()) {
+    btn.className = 'nav-item desktop-locked';
+    btn.innerHTML = '<span class="nav-icon"><span class="ms">🔒</span></span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span>';
+    btn.onclick = function() {
+      showToast('error', '🔒 Desktop App masih terkunci! Ketik "open desktop" di Mixmoi untuk membuka.');
+    };
+  } else {
+    btn.className = 'nav-item desktop-unlocked';
+    btn.innerHTML = '<span class="nav-icon"><span class="ms">💻</span></span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-unlocked" id="desktopBadge">🔓 Buka</span>';
+    btn.onclick = function() { navigate('desktop'); };
+  }
+}
+
+// ─── Render Desktop Page ───
+function renderDesktopPage() {
+  var container = document.getElementById('page-desktop');
+  if (!container) return;
+  if (isDesktopLocked()) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:60px 40px;">' +
+      '<div style="font-size:64px;margin-bottom:20px;">🔒</div>' +
+      '<h2 style="font-size:22px;color:var(--text);margin-bottom:8px;">Desktop App Terkunci</h2>' +
+      '<p style="font-size:14px;color:var(--text-muted);max-width:400px;margin:0 auto 24px;">' +
+      'Desktop app hanya bisa diakses melalui perintah khusus. Ketik <strong>"open desktop"</strong> di Mixmoi untuk membuka.' +
+      '</p>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+      '<button class="btn btn-primary btn-lg" onclick="aiSend(\'open desktop\');navigate(\'ai\')"><span class="ms sm">🐱</span> Buka via Mixmoi</button>' +
+      '<button class="btn btn-outline" onclick="showToast(\'info\',\'Desktop App: Mixmoi Assistant v1.0\')"><span class="ms sm">info</span> Info</button>' +
+      '</div>' +
+      '</div>';
+  } else {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:60px 40px;">' +
+      '<div style="font-size:64px;margin-bottom:20px;">💻</div>' +
+      '<h2 style="font-size:22px;color:var(--text);margin-bottom:8px;">Desktop App — Siap Digunakan</h2>' +
+      '<p style="font-size:14px;color:var(--text-muted);max-width:500px;margin:0 auto 24px;">' +
+      'Desktop App telah terbuka! Jalankan aplikasi desktop dari folder project ini.' +
+      '</p>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+      '<button class="btn btn-success btn-lg" onclick="showToast(\'success\',\'Desktop App siap dijalankan!\')"><span class="ms sm">play_arrow</span> Launch Desktop</button>' +
+      '<button class="btn btn-warning" onclick="lockDesktop();renderDesktopPage();showToast(\'info\',\'Desktop App dikunci kembali\')"><span class="ms sm">lock</span> Kunci Kembali</button>' +
+      '</div>' +
+      '<hr class="divider" style="max-width:400px;margin:24px auto;">' +
+      '<div style="font-size:13px;color:var(--text-light);text-align:left;max-width:500px;margin:0 auto;">' +
+      '<div style="font-weight:700;margin-bottom:10px;">📋 Cara Menjalankan:</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;">' +
+      '<div><span class="ms sm" style="vertical-align:middle;color:var(--primary-soft);">terminal</span> Buka terminal/command prompt di folder project</div>' +
+      '<div><span class="ms sm" style="vertical-align:middle;color:var(--primary-soft);">code</span> Jalankan: <code style="background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:12px;">cd "Toko Ban Murah Anugerah Manager App" && python main.py</code></div>' +
+      '<div><span class="ms sm" style="vertical-align:middle;color:var(--primary-soft);">check_circle</span> Pastikan sudah install: <code style="background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:12px;">pip install -r requirements.txt</code></div>' +
+      '<div><span class="ms sm" style="vertical-align:middle;color:var(--primary-soft);">smart_toy</span> Desktop app akan muncul dengan Mixmoi 🐱 AI Command Center</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+  }
 }
 
 // ─── Navigation ───
