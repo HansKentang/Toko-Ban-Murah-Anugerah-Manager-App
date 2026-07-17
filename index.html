@@ -2582,7 +2582,7 @@ function aiSend(msg) {
   
   // Show typing indicator
   var typing = '<div class="chat-typing" id="typing"><span></span><span></span><span></span></div>';
-  msgs.innerHTML += typing;
+  msgs.insertAdjacentHTML('beforeend', typing);
   msgs.scrollTop = msgs.scrollHeight;
   
   var s = getSettings();
@@ -2645,7 +2645,7 @@ function aiSend(msg) {
       var company = researchMatch[2];
       document.getElementById('typing')?.remove();
       var typing2 = '<div class="chat-typing" id="typing"><span></span><span></span><span></span></div>';
-      msgs.innerHTML += typing2;
+      msgs.insertAdjacentHTML('beforeend', typing2);
       msgs.scrollTop = msgs.scrollHeight;
       callCompanyResearch(company, serperKey, key, s.groqModel, function(reply) {
         document.getElementById('typing')?.remove();
