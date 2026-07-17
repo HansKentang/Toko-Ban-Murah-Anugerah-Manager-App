@@ -191,16 +191,72 @@ table tr:hover { background:var(--bg-hover); }
 .modal-footer { padding:16px 24px; border-top:1px solid var(--border-light); display:flex; gap:10px; justify-content:flex-end; }
 
 .chat-container { display:flex; flex-direction:column; height:calc(100vh - 140px); }
-.chat-messages { flex:1; overflow-y:auto; padding:16px 0; display:flex; flex-direction:column; gap:8px; }
-.chat-bubble { max-width:80%; padding:12px 18px; border-radius:18px; font-size:13px; line-height:1.6; animation:slideUp 0.3s ease; white-space:pre-wrap; }
-.chat-bubble.user { background:#dcf8c6; align-self:flex-end; border-bottom-right-radius:4px; }
-.chat-bubble.ai { background:white; align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04); }
-.chat-bubble .chat-ts { font-size:10px; color:var(--text-muted); margin-top:4px; text-align:right; }
-.chat-input-area { display:flex; gap:8px; padding:12px 0; }
-.chat-input-area .chat-input { flex:1; padding:12px 18px; border:1.5px solid var(--border-light); border-radius:24px; font-size:14px; font-family:inherit; transition:var(--transition); }
-.chat-input:focus { outline:none; border-color:var(--primary-soft); box-shadow:0 0 0 3px rgba(46,125,50,0.1); }
-.chat-send-btn { width:44px; height:44px; border-radius:50%; border:none; background:var(--primary-soft); color:white; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.chat-send-btn:hover { background:var(--primary); transform:scale(1.05); }
+.chat-messages { flex:1; overflow-y:auto; padding:12px 0; display:flex; flex-direction:column; gap:4px; scroll-behavior:smooth; }
+.chat-msg-group { display:flex; align-items:flex-start; gap:8px; margin-bottom:4px; animation:slideUp 0.3s ease; }
+.chat-msg-group.user-group { flex-direction:row-reverse; }
+.chat-msg-group.ai-group { flex-direction:row; }
+.chat-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px; background:var(--bg); border:1.5px solid var(--border-light); }
+.chat-avatar.mixmoi-avatar { background:linear-gradient(135deg,var(--primary),var(--primary-soft)); border-color:var(--primary-soft); font-size:14px; box-shadow:0 2px 8px rgba(46,125,50,0.15); }
+.chat-avatar.user-avatar { background:#e8f5e9; border-color:#a5d6a7; font-size:14px; }
+.chat-bubble-wrap { display:flex; flex-direction:column; max-width:75%; }
+.chat-bubble { padding:10px 16px; border-radius:16px; font-size:13px; line-height:1.65; white-space:pre-wrap; word-break:break-word; position:relative; }
+.chat-bubble.user { background:#dcf8c6; align-self:flex-end; border-bottom-right-radius:4px; color:var(--text); }
+.chat-bubble.ai { background:white; align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04); color:var(--text); }
+.chat-bubble .chat-ts { font-size:9px; color:var(--text-muted); margin-top:6px; text-align:right; opacity:0.7; }
+.chat-bubble .chat-copy-btn { position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:4px; border:none; background:transparent; cursor:pointer; opacity:0; transition:opacity 0.2s; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-muted); }
+.chat-bubble:hover .chat-copy-btn { opacity:1; }
+.chat-bubble .chat-copy-btn:hover { background:rgba(0,0,0,0.05); color:var(--text); }
+.chat-bubble.ai .chat-copy-btn { color:var(--text-muted); }
+.chat-input-area { display:flex; gap:8px; padding:8px 0; align-items:flex-end; }
+.chat-input-wrap { flex:1; position:relative; border:1.5px solid var(--border-light); border-radius:20px; background:white; transition:var(--transition); display:flex; align-items:center; }
+.chat-input-wrap:focus-within { border-color:var(--primary-soft); box-shadow:0 0 0 3px rgba(46,125,50,0.08); }
+.chat-input-wrap .chat-input { flex:1; padding:11px 16px; border:none; border-radius:20px; font-size:14px; font-family:inherit; background:transparent; outline:none; resize:none; max-height:120px; line-height:1.4; }
+.chat-input-wrap .chat-input-actions { display:flex; gap:4px; padding:4px 8px 4px 0; align-items:center; flex-shrink:0; }
+.chat-input-actions .cia-btn { width:32px; height:32px; border-radius:50%; border:none; background:transparent; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--text-muted); flex-shrink:0; }
+.chat-input-actions .cia-btn:hover { background:var(--bg-hover); color:var(--primary-soft); transform:scale(1.05); }
+.chat-send-btn { width:42px; height:42px; border-radius:50%; border:none; background:var(--primary-soft); color:white; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(46,125,50,0.2); }
+.chat-send-btn:hover { background:var(--primary); transform:scale(1.05); box-shadow:0 4px 12px rgba(46,125,50,0.3); }
+.chat-send-btn:active { transform:scale(0.95); }
+.chat-status-bar { display:flex; align-items:center; gap:12px; padding:6px 0 2px; font-size:11px; color:var(--text-muted); flex-wrap:wrap; }
+.chat-status-bar .status-item { display:flex; align-items:center; gap:4px; }
+.chat-status-bar .status-dot-sm { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.chat-status-bar .status-dot-sm.green { background:#4ade80; }
+.chat-status-bar .status-dot-sm.yellow { background:#facc15; }
+.chat-status-bar .status-dot-sm.gray { background:#9ca3af; }
+.chat-status-bar .status-dot-sm.red { background:#ef4444; }
+
+/* Markdown styling */
+.chat-bubble strong { font-weight:700; }
+.chat-bubble em { font-style:italic; }
+.chat-bubble code { background:#f3f4f6; padding:1px 5px; border-radius:4px; font-size:12px; font-family:'Courier New',monospace; color:var(--danger); }
+.chat-bubble pre { background:#f8f9fa; border:1px solid var(--border-light); border-radius:8px; padding:10px 14px; margin:6px 0; overflow-x:auto; font-size:12px; font-family:'Courier New',monospace; line-height:1.5; }
+.chat-bubble pre code { background:none; padding:0; border-radius:0; color:var(--text); font-size:12px; }
+.chat-bubble ul, .chat-bubble ol { margin:4px 0; padding-left:20px; }
+.chat-bubble li { margin:2px 0; }
+.chat-bubble hr { border:none; border-top:1px solid var(--border-light); margin:8px 0; }
+
+/* Typing indicator enhanced */
+.chat-typing { display:flex; gap:4px; padding:10px 16px; background:white; border-radius:16px; border-bottom-left-radius:4px; align-self:flex-start; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04); margin-left:40px; }
+.chat-typing span { width:7px; height:7px; border-radius:50%; background:#9ca3af; animation:typingBounce 1.4s infinite; }
+.chat-typing span:nth-child(2) { animation-delay:0.2s; }
+.chat-typing span:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* Smart suggestions */
+#aiSuggestions { position:absolute; bottom:100%; left:0; right:70px; background:white; border-radius:12px; box-shadow:0 -4px 20px rgba(0,0,0,0.1),0 4px 20px rgba(0,0,0,0.06); border:1px solid var(--border); display:none; max-height:200px; overflow-y:auto; z-index:10; margin-bottom:6px; }
+#aiSuggestions .suggestion-item { padding:10px 14px; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:10px; transition:var(--transition); border-bottom:1px solid var(--border-light); }
+#aiSuggestions .suggestion-item:last-child { border-bottom:none; }
+#aiSuggestions .suggestion-item:hover { background:var(--bg-hover); }
+#aiSuggestions .suggestion-item .si-icon { font-size:16px; flex-shrink:0; }
+#aiSuggestions .suggestion-item .si-text { flex:1; color:var(--text); }
+#aiSuggestions .suggestion-item .si-desc { font-size:11px; color:var(--text-muted); }
+
+.quick-actions-scroll { display:flex; gap:6px; overflow-x:auto; padding:6px 0 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.quick-actions-scroll::-webkit-scrollbar { display:none; }
+.chat-quick-btn { padding:6px 14px; border-radius:16px; border:1.5px solid var(--border-light); background:white; font-size:11px; cursor:pointer; transition:var(--transition); font-family:inherit; color:var(--text-light); white-space:nowrap; display:flex; align-items:center; gap:5px; flex-shrink:0; }
+.chat-quick-btn:hover { border-color:var(--primary-soft); background:var(--bg-hover); color:var(--primary); transform:translateY(-1px); }
+.chat-quick-btn:active { transform:scale(0.96); }
+.chat-quick-btn .ms { font-size:15px; }
 
 .brand-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:16px; }
 .brand-card { background:white; border-radius:var(--radius); border:1.5px solid var(--border-light); padding:20px 16px; cursor:pointer; transition:var(--transition); text-align:center; position:relative; overflow:hidden; }
@@ -346,7 +402,7 @@ table tr:hover { background:var(--bg-hover); }
       <button class="nav-item" data-page="sheets" onclick="navigate('sheets')"><span class="nav-icon"><span class="ms">description</span></span>Excel Auto</button>
       <button class="nav-item" data-page="qr" onclick="navigate('qr')"><span class="nav-icon"><span class="ms">qr_code_scanner</span></span>QR Catalog</button>
       <div class="nav-label">Lainnya</div>
-      <button class="nav-item desktop-locked" id="desktopNavBtn" onclick="toggleDesktopApp()"><span class="nav-icon"><span class="ms">🔒</span></span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span></button>
+      <button class="nav-item desktop-locked" id="desktopNavBtn"><span class="nav-icon">🔒</span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span></button>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-settings-btn" onclick="openSettingsModal()" title="Pengaturan"><span class="ms">settings</span></button><span class="sidebar-footer-spacer"></span><span class="status-dot"></span><span class="version">v1.0 · Semua siap</span></div>
   </aside>
@@ -391,46 +447,61 @@ table tr:hover { background:var(--bg-hover); }
       </div>
       <div class="page" id="page-ai">
         <div class="card" style="padding:0;overflow:hidden;">
-          <div style="background:linear-gradient(135deg,var(--primary),var(--primary-soft));padding:16px 20px;color:white;">
+          <!-- Header with Mixmoi branding -->
+          <div style="background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:16px 20px;color:white;display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:12px;">
-              <span style="font-size:32px;">🐱</span>
-              <div><strong style="font-size:17px;">Mixmoi</strong><br><span style="font-size:12px;opacity:0.8;">Executive Growth Partner — riset, analisis & konten marketing</span></div>
-            </div>
-          </div>
-          <div class="chat-container" style="padding:16px 20px;">
-            <div class="chat-quick-actions">
-              <button class="chat-quick-btn" onclick="aiSend('cek stok')"><span class="ms sm">inventory_2</span> Cek Stok</button>
-              <button class="chat-quick-btn" onclick="aiSend('promo random 3')"><span class="ms sm">campaign</span> Random 3</button>
-              <button class="chat-quick-btn" onclick="aiSend('promo gold')"><span class="ms sm">payments</span> Promo Gold</button>
-              <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms sm">bar_chart</span> Status</button>
-              <button class="chat-quick-btn" onclick="aiSend('cek stok')"><span class="ms sm">inventory_2</span> Cek Stok</button>
-              <button class="chat-quick-btn" onclick="aiSend('analisis penjualan')"><span class="ms sm">bar_chart</span> Analisis</button>
-              <button class="chat-quick-btn" onclick="aiSend('rekomendasi promo')"><span class="ms sm">campaign</span> Rekomendasi</button>
-              <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms sm">monitoring</span> Status</button>
-              <button class="chat-quick-btn" onclick="aiSend('tips ban')"><span class="ms">lightbulb</span> Tips Ban</button>
-              <button class="chat-quick-btn" onclick="aiSend('research Michelin Indonesia')"><span class="ms sm">travel_explore</span> Research</button>
-              <button class="chat-quick-btn" onclick="aiSend('strategi harga 185/65R14')"><span class="ms sm">sell</span> Strategi Harga</button>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-              <div class="chat-bubble ai" id="aiWelcomeMsg">
-                🐱 Halo! Saya <strong>Mixmoi</strong>, <strong>Executive Growth Partner</strong> untuk <strong>Toko Ban Murah Anugerah</strong>.<br><br>
-                Saya siap membantu:<br>
-                <span class="ms sm" style="vertical-align:middle">inventory_2</span> Cek stok &amp; inventory<br>
-                <span class="ms sm" style="vertical-align:middle">payments</span> Info harga &amp; promo<br>
-                <span class="ms sm" style="vertical-align:middle">bar_chart</span> Analisis bisnis &amp; penjualan<br>
-                <span class="ms sm" style="vertical-align:middle">campaign</span> Strategi marketing &amp; konten<br>
-                <span class="ms sm" style="vertical-align:middle">manage_search</span> Intelijen kompetitor<br>
-                <span class="ms sm" style="vertical-align:middle">star</span> Program loyalitas pelanggan<br>
-                <span class="ms sm" style="vertical-align:middle">sell</span> Strategi harga &amp; paket ban<br>
-                <span class="ms sm" style="vertical-align:middle">travel_explore</span> Company research via web
-                <div class="chat-ts">Sekarang</div>
+              <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid rgba(255,255,255,0.2);flex-shrink:0;">🐱</div>
+              <div>
+                <strong style="font-size:16px;">Mixmoi</strong>
+                <div style="font-size:11px;opacity:0.8;display:flex;align-items:center;gap:6px;margin-top:1px;">
+                  <span>Executive Growth Partner</span>
+                  <span style="opacity:0.4;">·</span>
+                  <span id="aiStatusLabel" style="display:flex;align-items:center;gap:3px;">
+                    <span id="aiStatusDot" style="width:5px;height:5px;border-radius:50%;background:#9ca3af;display:inline-block;"></span>
+                    <span id="aiStatusText">AI siap</span>
+                  </span>
+                </div>
               </div>
             </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span id="aiMsgCount" style="font-size:10px;opacity:0.6;padding:2px 8px;background:rgba(255,255,255,0.08);border-radius:10px;">0 pesan</span>
+              <button onclick="resetChat()" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.1);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;font-size:14px;" title="Reset percakapan">🗑</button>
+            </div>
+          </div>
+          <!-- Chat area -->
+          <div class="chat-container" style="padding:0 16px 12px;">
+            <!-- Quick actions scroll -->
+            <div class="quick-actions-scroll" id="aiQuickActions">
+              <button class="chat-quick-btn" onclick="aiSend('cek stok')"><span class="ms">inventory_2</span> Cek Stok</button>
+              <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms">bar_chart</span> Status Bisnis</button>
+              <button class="chat-quick-btn" onclick="aiSend('analisis penjualan')"><span class="ms">trending_up</span> Analisis</button>
+              <button class="chat-quick-btn" onclick="aiSend('promo random 5')"><span class="ms">campaign</span> Promo Random</button>
+              <button class="chat-quick-btn" onclick="aiSend('strategi harga 185/65R14')"><span class="ms">sell</span> Strategi Harga</button>
+              <button class="chat-quick-btn" onclick="aiSend('tips ban')"><span class="ms">lightbulb</span> Tips Ban</button>
+              <button class="chat-quick-btn" onclick="aiSend('research Michelin Indonesia')"><span class="ms">travel_explore</span> Research</button>
+              <button class="chat-quick-btn" onclick="aiSend('rekomendasi konten instagram')"><span class="ms">image</span> Konten IG</button>
+              <button class="chat-quick-btn" onclick="aiSend('daftar pelanggan')"><span class="ms">people</span> Pelanggan</button>
+              <button class="chat-quick-btn" onclick="aiSend('open desktop')"><span class="ms">💻</span> Buka Desktop</button>
+            </div>
+            <!-- Messages -->
+            <div class="chat-messages" id="chatMessages"></div>
+            <!-- Status bar -->
+            <div class="chat-status-bar" id="chatStatusBar">
+              <span class="status-item"><span class="status-dot-sm gray" id="statusGroqDot"></span><span id="statusGroqText">Groq: tidak aktif</span></span>
+              <span class="status-item"><span id="statusModelText">Model: -</span></span>
+              <span class="status-item" id="statusMsgCounter">💬 0 pesan</span>
+            </div>
+            <!-- Input area -->
             <div class="chat-input-area" style="position:relative;">
-              <div id="aiSuggestions" style="position:absolute;bottom:60px;left:0;right:60px;background:white;border-radius:12px;box-shadow:0 -4px 20px rgba(0,0,0,0.1);border:1px solid var(--border);display:none;max-height:180px;overflow-y:auto;z-index:10;"></div>
-              <input class="chat-input" id="chatInput" placeholder="Ketik perintah...">
+              <div id="aiSuggestions"></div>
+              <div class="chat-input-wrap">
+                <textarea class="chat-input" id="chatInput" placeholder="Tanya Mixmoi apa saja..." rows="1" oninput="autoResizeInput(this)"></textarea>
+                <div class="chat-input-actions">
+                  <button class="cia-btn" onclick="toggleSuggestions()" title="Saran perintah">💡</button>
+                  <button class="cia-btn" onclick="clearInput()" title="Hapus">✕</button>
+                </div>
+              </div>
               <button class="chat-send-btn" onclick="aiSend()" title="Kirim"><span class="ms">send</span></button>
-              <button class="chat-send-btn" onclick="resetChat()" title="Reset percakapan" style="background:var(--border);width:36px;height:36px;"><span class="ms" style="font-size:18px;">refresh</span></button>
             </div>
           </div>
         </div>
@@ -1153,13 +1224,13 @@ function updateDesktopUI() {
   if (!btn || !label || !badge) return;
   if (isDesktopLocked()) {
     btn.className = 'nav-item desktop-locked';
-    btn.innerHTML = '<span class="nav-icon"><span class="ms">🔒</span></span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span>';
+    btn.innerHTML = '<span class="nav-icon">🔒</span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span>';
     btn.onclick = function() {
       showToast('error', '🔒 Desktop App masih terkunci! Ketik "open desktop" di Mixmoi untuk membuka.');
     };
   } else {
     btn.className = 'nav-item desktop-unlocked';
-    btn.innerHTML = '<span class="nav-icon"><span class="ms">💻</span></span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-unlocked" id="desktopBadge">🔓 Buka</span>';
+    btn.innerHTML = '<span class="nav-icon">💻</span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-unlocked" id="desktopBadge">🔓 Buka</span>';
     btn.onclick = function() { navigate('desktop'); };
   }
 }
@@ -2112,9 +2183,237 @@ function deleteProduct(id) {
 }
 
 // ═══ AI COMMAND ═══
-// ─── Conversation History ───
+// ─── Conversation History & Persistence ───
 var _aiHistory = [];
 const AI_MAX_HISTORY = 30;
+const CONV_SAVE_KEY = 'tbma_ai_conversation';
+
+function saveConversation() {
+  try {
+    var data = { history: _aiHistory, ts: Date.now() };
+    localStorage.setItem(CONV_SAVE_KEY, JSON.stringify(data));
+  } catch(e) { /* ignore */ }
+}
+
+function loadConversation() {
+  try {
+    var raw = localStorage.getItem(CONV_SAVE_KEY);
+    if (raw) {
+      var data = JSON.parse(raw);
+      if (data.history && data.history.length > 0) {
+        _aiHistory = data.history.slice(-AI_MAX_HISTORY);
+        return true;
+      }
+    }
+  } catch(e) { /* ignore */ }
+  return false;
+}
+
+function renderMarkdown(text) {
+  var s = text
+    // Code blocks first
+    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Bold
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // Line breaks to <br>
+    .replace(/\n/g, '<br>');
+  return s;
+}
+
+function formatTimestamp(date) {
+  return date.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+
+function addChatMessage(role, text, opts) {
+  opts = opts || {};
+  var msgs = document.getElementById('chatMessages');
+  var ts = opts.timestamp || formatTimestamp(new Date());
+  
+  var group = document.createElement('div');
+  group.className = 'chat-msg-group ' + (role === 'user' ? 'user-group' : 'ai-group');
+  
+  // Avatar
+  var avatar = document.createElement('div');
+  avatar.className = 'chat-avatar ' + (role === 'ai' ? 'mixmoi-avatar' : 'user-avatar');
+  avatar.textContent = role === 'ai' ? '🐱' : '👤';
+  group.appendChild(avatar);
+  
+  // Bubble wrap
+  var wrap = document.createElement('div');
+  wrap.className = 'chat-bubble-wrap';
+  
+  var bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ' + role;
+  
+  if (role === 'user') {
+    bubble.innerHTML = esc(text).replace(/\n/g, '<br>');
+  } else {
+    // Render with markdown and add copy button for non-welcome messages
+    var rendered = renderMarkdown(text);
+    bubble.innerHTML = rendered;
+    
+    // Copy button for AI messages
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'chat-copy-btn';
+    copyBtn.innerHTML = '📋';
+    copyBtn.title = 'Copy';
+    copyBtn.onclick = function(e) {
+      e.stopPropagation();
+      navigator.clipboard.writeText(text).then(function() {
+        showToast('success', '✅ Teks di-copy!');
+      }).catch(function() {
+        showToast('error', 'Gagal copy');
+      });
+    };
+    bubble.appendChild(copyBtn);
+  }
+  
+  // Timestamp
+  var tsEl = document.createElement('div');
+  tsEl.className = 'chat-ts';
+  tsEl.textContent = ts;
+  bubble.appendChild(tsEl);
+  
+  wrap.appendChild(bubble);
+  group.appendChild(wrap);
+  
+  // Animate
+  group.style.opacity = '0';
+  group.style.transform = 'translateY(10px)';
+  msgs.appendChild(group);
+  
+  // Trigger animation
+  requestAnimationFrame(function() {
+    group.style.transition = 'all 0.3s ease';
+    group.style.opacity = '1';
+    group.style.transform = 'translateY(0)';
+  });
+  
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  // Update message counter
+  updateMsgCounter();
+  return group;
+}
+
+function updateMsgCounter() {
+  var el = document.getElementById('aiMsgCount');
+  var el2 = document.getElementById('statusMsgCounter');
+  var count = _aiHistory.length;
+  var msgCount = Math.ceil(count / 2);
+  var text = msgCount + ' pesan';
+  if (el) el.textContent = text;
+  if (el2) el2.innerHTML = '💬 ' + text;
+}
+
+function updateAIStatus(config) {
+  var dot = document.getElementById('aiStatusDot');
+  var txt = document.getElementById('aiStatusText');
+  var groqDot = document.getElementById('statusGroqDot');
+  var groqTxt = document.getElementById('statusGroqText');
+  var modelTxt = document.getElementById('statusModelText');
+  
+  var s = config || getSettings();
+  var key = s.groqKey || '';
+  var model = s.groqModel || 'llama-3.3-70b-versatile';
+  
+  if (key && key.startsWith('gsk_') && key.length >= 20) {
+    if (dot) { dot.style.background = '#4ade80'; }
+    if (txt) txt.textContent = 'Groq AI siap';
+    if (groqDot) { groqDot.className = 'status-dot-sm green'; }
+    if (groqTxt) groqTxt.textContent = 'Groq: terhubung';
+  } else if (key) {
+    if (dot) { dot.style.background = '#facc15'; }
+    if (txt) txt.textContent = 'Key tersimpan';
+    if (groqDot) { groqDot.className = 'status-dot-sm yellow'; }
+    if (groqTxt) groqTxt.textContent = 'Groq: key tersimpan';
+  } else {
+    if (dot) { dot.style.background = '#9ca3af'; }
+    if (txt) txt.textContent = 'AI siap — atur API Key';
+    if (groqDot) { groqDot.className = 'status-dot-sm gray'; }
+    if (groqTxt) groqTxt.textContent = 'Groq: tidak aktif';
+  }
+  if (modelTxt) modelTxt.textContent = 'Model: ' + model;
+}
+
+function clearInput() {
+  document.getElementById('chatInput').value = '';
+  document.getElementById('chatInput').focus();
+  hideSuggestions();
+}
+
+function autoResizeInput(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  showInputSuggestions(el.value);
+}
+
+function showInputSuggestions(val) {
+  var sug = document.getElementById('aiSuggestions');
+  if (!sug) return;
+  var v = val.trim().toLowerCase();
+  if (v.length < 1) { hideSuggestions(); return; }
+  
+  var all = [
+    { icon:'📦', text:'cek stok', desc:'Lihat semua stok ban' },
+    { icon:'📊', text:'status', desc:'Status bisnis lengkap' },
+    { icon:'📈', text:'analisis penjualan', desc:'Analisis data penjualan' },
+    { icon:'📣', text:'promo random 5', desc:'Kirim promo ke 5 pelanggan acak' },
+    { icon:'💰', text:'strategi harga 185/65R14', desc:'Rekomendasi harga & loss leader' },
+    { icon:'🎨', text:'buat konten promo', desc:'Buat konten Instagram/TikTok' },
+    { icon:'🔍', text:'research Michelin', desc:'Riset perusahaan via web' },
+    { icon:'💡', text:'tips ban', desc:'Tips perawatan ban random' },
+    { icon:'📋', text:'daftar pelanggan', desc:'Lihat pelanggan & poin' },
+    { icon:'🔄', text:'open desktop', desc:'Buka kunci Desktop App' },
+  ];
+  
+  var matches = all.filter(function(a) { return a.text.indexOf(v) >= 0 || a.desc.indexOf(v) >= 0; });
+  if (matches.length === 0 || matches.length === all.length) { hideSuggestions(); return; }
+  
+  sug.style.display = 'block';
+  sug.innerHTML = matches.map(function(m) {
+    return '<div class="suggestion-item" onclick="aiSend(\'' + m.text + '\');hideSuggestions();">' +
+      '<span class="si-icon">' + m.icon + '</span>' +
+      '<div><div class="si-text">' + m.text + '</div><div class="si-desc">' + m.desc + '</div></div>' +
+      '</div>';
+  }).join('');
+}
+
+function hideSuggestions() {
+  var sug = document.getElementById('aiSuggestions');
+  if (sug) sug.style.display = 'none';
+}
+
+function toggleSuggestions() {
+  var sug = document.getElementById('aiSuggestions');
+  if (!sug) return;
+  if (sug.style.display === 'block') { hideSuggestions(); return; }
+  
+  var all = [
+    { icon:'📦', text:'cek stok', desc:'Lihat semua stok ban' },
+    { icon:'📊', text:'status', desc:'Status bisnis lengkap' },
+    { icon:'📈', text:'analisis penjualan', desc:'Analisis data penjualan' },
+    { icon:'📣', text:'promo random 5', desc:'Kirim promo ke 5 pelanggan acak' },
+    { icon:'💰', text:'strategi harga 185/65R14', desc:'Rekomendasi harga & loss leader' },
+    { icon:'🎨', text:'buat konten promo', desc:'Buat konten Instagram/TikTok' },
+    { icon:'🔍', text:'research Michelin', desc:'Riset perusahaan via web' },
+    { icon:'💡', text:'tips ban', desc:'Tips perawatan ban random' },
+    { icon:'📋', text:'daftar pelanggan', desc:'Lihat pelanggan & poin' },
+    { icon:'🔄', text:'open desktop', desc:'Buka kunci Desktop App' },
+  ];
+  
+  sug.style.display = 'block';
+  sug.innerHTML = all.map(function(m) {
+    return '<div class="suggestion-item" onclick="aiSend(\'' + m.text + '\');hideSuggestions();">' +
+      '<span class="si-icon">' + m.icon + '</span>' +
+      '<div><div class="si-text">' + m.text + '</div><div class="si-desc">' + m.desc + '</div></div>' +
+      '</div>';
+  }).join('');
+}
 
 // ─── System Prompt (from ai-agent-persona.md) ───
 const AI_SYSTEM_PROMPT = `Anda adalah Mixmoi 🐱, Executive Growth Partner, Competitive Intelligence Analyst, dan Content Strategist untuk Toko Ban Murah Anugerah.
@@ -2232,14 +2531,15 @@ function aiSend(msg) {
   var input = document.getElementById('chatInput');
   var text = msg || input.value;
   if (!text) return;
-  input.value = '';
+  if (!msg) input.value = '';
+  hideSuggestions();
   
   var msgs = document.getElementById('chatMessages');
-  msgs.innerHTML += '<div class="chat-bubble user">' + esc(text) + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
-  msgs.scrollTop = msgs.scrollHeight;
   
-  // Add to conversation history
+  // Add user message with avatar
+  addChatMessage('user', text);
   _aiHistory.push({ role: 'user', content: text });
+  saveConversation();
   
   // Show typing indicator
   var typing = '<div class="chat-typing" id="typing"><span></span><span></span><span></span></div>';
@@ -2254,26 +2554,24 @@ function aiSend(msg) {
   if (unlockMatch) {
     document.getElementById('typing')?.remove();
     unlockDesktop();
-    var unlockReply = '🐱 **Desktop App terbuka!**\n\n' +
-      'Saya telah membuka akses ke Desktop App untuk Anda! 🎉\n\n' +
+    updateAIStatus();
+    var unlockReply = '🐱 **Desktop App terbuka!** 🎉\n\n' +
+      'Saya telah membuka akses ke Desktop App untuk Anda!\n\n' +
       '💻 **Cara menjalankan:**\n' +
-      '1. Buka terminal/command prompt\n' +
-      '2. Masuk ke folder project\n' +
-      '3. Jalankan: **python main.py**\n' +
-      '4. Desktop App akan muncul dengan semua tools bisnis + Mixmoi 🐱\n\n' +
-      'Atau klik **💻 Desktop App** di sidebar untuk melihat panduan lengkapnya!';
-    var formatted = unlockReply.replace(/\n/g, '<br>');
-    msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
-    msgs.scrollTop = msgs.scrollHeight;
+      '1. Buka terminal/command prompt di folder project\n' +
+      '2. Jalankan: **python main.py**\n' +
+      '3. Desktop App akan muncul dengan semua tools bisnis + Mixmoi 🐱\n\n' +
+      'Atau klik **💻 Desktop App** di sidebar untuk panduan lengkapnya!';
     _aiHistory.push({ role: 'assistant', content: unlockReply });
+    addChatMessage('ai', unlockReply);
+    saveConversation();
     showToast('success', '🔓 Desktop App terbuka!');
-    input.value = '';
     return;
   }
 
   if (key && key.startsWith('gsk_') && key.length >= 20) {
     // ─── Detect Company Research ───
-    var researchMatch = text.match(/^(research|riset|cari perusahaan|profil|info|teliti)\s+(.+)/i);
+    var researchMatch = text.match(/^(research|riset|cari perusahaan|profil|info|teliti|telusuri)\s+(.+)/i);
     var serperKey = s.serperKey || '';
     if (researchMatch && serperKey && serperKey.length > 10) {
       var company = researchMatch[2];
@@ -2283,36 +2581,36 @@ function aiSend(msg) {
       msgs.scrollTop = msgs.scrollHeight;
       callCompanyResearch(company, serperKey, key, s.groqModel, function(reply) {
         document.getElementById('typing')?.remove();
-        var formatted = reply.replace(/\n/g, '<br>');
-        msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
-        msgs.scrollTop = msgs.scrollHeight;
         _aiHistory.push({ role: 'assistant', content: reply });
+        addChatMessage('ai', reply);
+        saveConversation();
       });
       return;
     } else if (researchMatch && !serperKey) {
       document.getElementById('typing')?.remove();
-      msgs.innerHTML += '<div class="chat-bubble ai">Untuk Company Research, Anda perlu mengatur <strong>Serper API Key</strong> di Pengaturan terlebih dahulu.<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
-      msgs.scrollTop = msgs.scrollHeight;
+      var noKeyMsg = 'Untuk Company Research, Anda perlu mengatur **Serper API Key** di Pengaturan terlebih dahulu.\n\nKlik icon ⚙️ di pojok kiri bawah → masukkan Serper API Key → Simpan.';
+      _aiHistory.push({ role: 'assistant', content: noKeyMsg });
+      addChatMessage('ai', noKeyMsg);
+      saveConversation();
       return;
     }
     // ─── Groq AI Mode ───
     callGroqAI(text, s, function(reply) {
       document.getElementById('typing')?.remove();
-      var formatted = reply.replace(/\n/g, '<br>');
-      msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
-      msgs.scrollTop = msgs.scrollHeight;
       _aiHistory.push({ role: 'assistant', content: reply });
+      addChatMessage('ai', reply);
+      saveConversation();
     });
   } else {
     // ─── Belum ada API Key ───
     document.getElementById('typing')?.remove();
-    var helpMsg = '<div class="chat-bubble ai">' +
-      '<span class="ms sm" style="vertical-align:middle">🐱</span> <strong>Mixmoi butuh API Key!</strong><br><br>' +
-      'Untuk menggunakan Mixmoi, Anda perlu mengatur <strong>Groq API Key</strong> terlebih dahulu.<br><br>' +
-      '<span class="ms sm" style="vertical-align:middle">settings</span> Buka <strong>Pengaturan</strong> (icon gear di pojok kiri bawah) → masukkan API Key → Simpan' +
-      '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
-    msgs.innerHTML += helpMsg;
-    msgs.scrollTop = msgs.scrollHeight;
+    var helpMsg = '🐱 **Mixmoi butuh API Key!**\n\n' +
+      'Untuk menggunakan Mixmoi, Anda perlu mengatur **Groq API Key** terlebih dahulu.\n\n' +
+      '⚙️ Buka **Pengaturan** (icon gear di pojok kiri bawah) → masukkan Groq API Key → Simpan.\n\n' +
+      '💡 Dapatkan API Key gratis di: **console.groq.com**';
+    _aiHistory.push({ role: 'assistant', content: helpMsg });
+    addChatMessage('ai', helpMsg);
+    saveConversation();
   }
 }
 
@@ -2482,12 +2780,51 @@ function testSerperKey() {
 
 // ─── Reset Chat ───
 function resetChat() {
-  if (!confirm('Reset percakapan? Riwayat chat akan dihapus.')) return;
+  if (!confirm('Hapus semua percakapan? Riwayat chat akan dihapus permanen.')) return;
   _aiHistory = [];
   var msgs = document.getElementById('chatMessages');
-  // Keep only the welcome message
-  msgs.innerHTML = document.getElementById('aiWelcomeMsg').outerHTML;
+  msgs.innerHTML = '';
+  localStorage.removeItem(CONV_SAVE_KEY);
+  // Add fresh welcome
+  showWelcomeMessage();
+  updateMsgCounter();
   showToast('info', 'Percakapan direset!');
+}
+
+function showWelcomeMessage() {
+  var welcome = '🐱 Halo! Saya **Mixmoi**, **Executive Growth Partner** untuk **Toko Ban Murah Anugerah**.\n\n' +
+    'Saya siap membantu Anda dengan:\n' +
+    '📦 • Cek stok & inventory\n' +
+    '💰 • Info harga & promo\n' +
+    '📊 • Analisis bisnis & penjualan\n' +
+    '📣 • Strategi marketing & konten\n' +
+    '🔍 • Intelijen kompetitor\n' +
+    '⭐ • Program loyalitas pelanggan\n' +
+    '💵 • Strategi harga & paket ban\n' +
+    '🌐 • Company research via web\n\n' +
+    '💡 **Coba ketik:** "cek stok", "status", atau "tips ban"!';
+  addChatMessage('ai', welcome, { timestamp: 'Sekarang' });
+}
+
+function restoreConversation() {
+  var msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = '';
+  
+  if (!loadConversation() || _aiHistory.length === 0) {
+    // No saved conversation, show welcome
+    showWelcomeMessage();
+    return;
+  }
+  
+  // Replay saved conversation
+  for (var i = 0; i < _aiHistory.length; i++) {
+    var msg = _aiHistory[i];
+    addChatMessage(msg.role, msg.content);
+  }
+  // Remove last message animation artifacts and scroll
+  var msgsEl = document.getElementById('chatMessages');
+  if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+  showToast('info', '💬 Percakapan sebelumnya dipulihkan (' + Math.ceil(_aiHistory.length/2) + ' pesan)');
 }
 
 // ═══ INIT ═══
@@ -2497,10 +2834,39 @@ renderDashboard();
 // Chat input enter key
 document.addEventListener('DOMContentLoaded', function() {
   updateDesktopUI();
+  updateAIStatus();
+  restoreConversation();
+  
   var ci = document.getElementById('chatInput');
-  if (ci) ci.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') aiSend();
+  if (ci) {
+    ci.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        aiSend();
+      }
+    });
+    ci.addEventListener('blur', function() {
+      setTimeout(hideSuggestions, 200);
+    });
+  }
+  
+  // Close suggestions on click outside
+  document.addEventListener('click', function(e) {
+    var sug = document.getElementById('aiSuggestions');
+    var input = document.getElementById('chatInput');
+    if (sug && input && e.target !== input && !sug.contains(e.target)) {
+      hideSuggestions();
+    }
   });
+  
+  // Update Groq status when settings change
+  var observer = new MutationObserver(function() {
+    updateAIStatus();
+  });
+  var settingsModal = document.getElementById('settingsModal');
+  if (settingsModal) {
+    observer.observe(settingsModal, { attributes: true, attributeFilter: ['class'] });
+  }
 });
 </script>
 </body>
