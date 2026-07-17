@@ -2055,6 +2055,7 @@ class TokoBanApp:
       return "break"
 
     self.ai_input.bind("<Return>", send_on_enter)
+    self.ai_input.focus_set()
 
     send_btn = ctk.CTkButton(input_row, text="➤",
                  font=ctk.CTkFont(size=18),
