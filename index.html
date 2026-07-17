@@ -241,15 +241,38 @@ table tr:hover { background:var(--bg-hover); }
 .sidebar-toggle { display:none; background:none; border:none; cursor:pointer; color:var(--primary); padding:4px; align-items:center; }
 .sidebar-toggle .ms { font-size:24px; }
 @media (max-width:768px) {
-    .sidebar { position:fixed; left:-280px; top:0; bottom:0; z-index:200; box-shadow:4px 0 20px rgba(0,0,0,0.2); }
+    .sidebar { position:fixed; left:-280px; top:0; bottom:0; z-index:200; box-shadow:4px 0 20px rgba(0,0,0,0.2); transition:left 0.3s ease; }
     .sidebar.open { left:0; }
     .main-content { margin-left:0; }
     .sidebar-toggle { display:flex!important; }
     .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:199; }
     .sidebar-overlay.open { display:block; }
     .stats-grid { grid-template-columns:1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns:1fr; }
     .form-row { grid-template-columns:1fr; }
-    .page-content { padding:16px; }
+    .page-content { padding:12px; }
+    .topbar { padding:12px 16px; flex-wrap:wrap; gap:8px; }
+    .cabang-switcher { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .cabang-btn { font-size:11px; padding:4px 10px; white-space:nowrap; }
+    .topbar-actions .action-btn { width:32px; height:32px; }
+    .chat-bubble { max-width:90%; font-size:12px; }
+    .card { padding:16px; }
+    .brand-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+    .model-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; }
+    .stat-card .stat-value { font-size:20px; }
+    .settings-key-wrap { flex-wrap:wrap; }
+    .settings-key-wrap .btn { font-size:11px; padding:4px 10px; }
+}
+@media (max-width:480px) {
+    .stats-grid { grid-template-columns:1fr; }
+    .page-content { padding:8px; }
+    .card { padding:12px; border-radius:12px; }
+    .topbar .page-title { font-size:15px; }
+    .stat-card .stat-value { font-size:18px; }
+    .brand-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+    .chat-input { font-size:13px; padding:10px 14px; }
+    .chat-send-btn { width:38px; height:38px; }
+    .modal { max-width:95%; }
 }
 
 .flex { display:flex; }
@@ -332,6 +355,9 @@ table tr:hover { background:var(--bg-hover); }
           <button class="cabang-btn" data-cabang="Ungaran" onclick="setCabang('Ungaran')"><span class="cabang-dot ung"></span>Ungaran</button>
         </div>
         <div class="topbar-actions">
+          <button class="action-btn" onclick="exportAllData()" title="Export Data"><span class="ms">download</span></button>
+          <button class="action-btn" onclick="document.getElementById('importFileInput').click()" title="Import Data"><span class="ms">upload</span></button>
+          <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importAllData(event)">
           <button class="action-btn" onclick="resetAllData()" title="Reset Data"><span class="ms">refresh</span></button>
           <button class="action-btn" onclick="showToast('info','Toko Ban Murah Anugerah v1.0')" title="Info"><span class="ms">info</span></button>
         </div>
@@ -369,8 +395,13 @@ table tr:hover { background:var(--bg-hover); }
               <button class="chat-quick-btn" onclick="aiSend('promo random 3')"><span class="ms sm">campaign</span> Random 3</button>
               <button class="chat-quick-btn" onclick="aiSend('promo gold')"><span class="ms sm">payments</span> Promo Gold</button>
               <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms sm">bar_chart</span> Status</button>
+              <button class="chat-quick-btn" onclick="aiSend('cek stok')"><span class="ms sm">inventory_2</span> Cek Stok</button>
+              <button class="chat-quick-btn" onclick="aiSend('analisis penjualan')"><span class="ms sm">bar_chart</span> Analisis</button>
+              <button class="chat-quick-btn" onclick="aiSend('rekomendasi promo')"><span class="ms sm">campaign</span> Rekomendasi</button>
+              <button class="chat-quick-btn" onclick="aiSend('status')"><span class="ms sm">monitoring</span> Status</button>
               <button class="chat-quick-btn" onclick="aiSend('tips ban')"><span class="ms">lightbulb</span> Tips Ban</button>
               <button class="chat-quick-btn" onclick="aiSend('research Michelin Indonesia')"><span class="ms sm">travel_explore</span> Research</button>
+              <button class="chat-quick-btn" onclick="aiSend('strategi harga 185/65R14')"><span class="ms sm">sell</span> Strategi Harga</button>
             </div>
             <div class="chat-messages" id="chatMessages">
               <div class="chat-bubble ai" id="aiWelcomeMsg">
@@ -381,7 +412,9 @@ table tr:hover { background:var(--bg-hover); }
                 <span class="ms sm" style="vertical-align:middle">bar_chart</span> Analisis bisnis &amp; penjualan<br>
                 <span class="ms sm" style="vertical-align:middle">campaign</span> Strategi marketing &amp; konten<br>
                 <span class="ms sm" style="vertical-align:middle">manage_search</span> Intelijen kompetitor<br>
-                <span class="ms sm" style="vertical-align:middle">star</span> Program loyalitas pelanggan
+                <span class="ms sm" style="vertical-align:middle">star</span> Program loyalitas pelanggan<br>
+                <span class="ms sm" style="vertical-align:middle">sell</span> Strategi harga &amp; paket ban<br>
+                <span class="ms sm" style="vertical-align:middle">travel_explore</span> Company research via web
                 <div class="chat-ts">Sekarang</div>
               </div>
             </div>
@@ -1134,29 +1167,31 @@ function renderDashboard() {
   var filteredSales = db.sales;
   if (_activeCabang !== 'all') filteredSales = db.sales.filter(function(s){ return s.cabang === _activeCabang; });
   var totalRevenue = filteredSales.reduce(function(s,x){ return s + (x.total || 0); }, 0);
-  var totalProfit = Math.round(totalRevenue * 0.35);
   var totalSales = filteredSales.length;
+  var avgTrans = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
+  var estProfit = Math.round(totalRevenue * 0.32);
   var allProds = getProducts();
   var cabangProds = getCabangFiltered(allProds);
   var totalProducts = cabangProds.length;
   var lowStock = cabangProds.filter(function(p){ return (p.stok || 0) <= (p.stokMin || 5); }).length;
   
-  // Build stats with cabang breakdown
+  // Build enhanced stats
   var statsHtml = '' +
     '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">payments</span></div><div class="stat-value">Rp ' + formatRupiah(totalRevenue) + '</div><div class="stat-label">Pendapatan' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
     '<div class="stat-card accent-blue"><div class="stat-icon"><span class="ms icon-26">trending_up</span></div><div class="stat-value">' + totalSales + '</div><div class="stat-label">Transaksi' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
+    '<div class="stat-card accent-purple"><div class="stat-icon"><span class="ms icon-26">monetization_on</span></div><div class="stat-value">Rp ' + formatRupiah(estProfit) + '</div><div class="stat-label">Estimasi Laba</div></div>' +
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">show_chart</span></div><div class="stat-value">Rp ' + formatRupiah(avgTrans) + '</div><div class="stat-label">Rata-rata Transaksi</div></div>' +
     '<div class="stat-card accent-purple"><div class="stat-icon"><span class="ms icon-26">inventory_2</span></div><div class="stat-value">' + totalProducts + '</div><div class="stat-label">Produk' + (_activeCabang !== 'all' ? ' ' + _activeCabang : '') + '</div></div>' +
     '<div class="stat-card ' + (lowStock > 0 ? 'accent-gold' : 'accent-green') + '"><div class="stat-icon">' + (lowStock > 0 ? '<span class=\"ms\">warning</span>' : '<span class=\"ms\">check_circle</span>') + '</div><div class="stat-value">' + lowStock + '</div><div class="stat-label">Stok Menipis</div></div>';
   
-  // If viewing all, add per-cabang mini stats
+  // Add cabang comparison always (shows per-cabang if filtered, or both if all)
   if (_activeCabang === 'all') {
-    var bykCount = allProds.filter(function(p){ return p.cabang === 'Banyumanik'; }).length;
-    var ungCount = allProds.filter(function(p){ return p.cabang === 'Ungaran'; }).length;
     var bykSales = db.sales.filter(function(s){ return (!s.cabang || s.cabang === 'Banyumanik'); }).reduce(function(t,x){ return t+(x.total||0); },0);
     var ungSales = db.sales.filter(function(s){ return s.cabang === 'Ungaran'; }).reduce(function(t,x){ return t+(x.total||0); },0);
+    var totalS = totalRevenue || 1;
     statsHtml += '' +
-      '<div class="stat-card accent-green"><div class="stat-icon"><span class="cabang-dot byk" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E7D32;"></span></div><div class="stat-value" style="font-size:18px;">' + bykCount + ' produk</div><div class="stat-label">Banyumanik · Rp ' + formatRupiah(bykSales) + '</div></div>' +
-      '<div class="stat-card accent-orange"><div class="stat-icon"><span class="cabang-dot ung" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF8F00;"></span></div><div class="stat-value" style="font-size:18px;">' + ungCount + ' produk</div><div class="stat-label">Ungaran · Rp ' + formatRupiah(ungSales) + '</div></div>';
+      '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms icon-26">location_on</span></div><div class="stat-value" style="font-size:18px;">Banyumanik</div><div class="stat-label">Rp ' + formatRupiah(bykSales) + ' (' + Math.round(bykSales/totalS*100) + '%)</div></div>' +
+      '<div class="stat-card accent-orange"><div class="stat-icon"><span class="ms icon-26">location_on</span></div><div class="stat-value" style="font-size:18px;">Ungaran</div><div class="stat-label">Rp ' + formatRupiah(ungSales) + ' (' + Math.round(ungSales/totalS*100) + '%)</div></div>';
   }
   document.getElementById('dashStats').innerHTML = statsHtml;
   updateOrderBadge();
@@ -1822,6 +1857,77 @@ function downloadCSV(csv, filename) {
   URL.revokeObjectURL(link.href);
 }
 
+// ─── Data Export & Import ───
+function exportAllData() {
+  var db = getDB();
+  if (!db) { showToast('error', 'Tidak ada data untuk diexport'); return; }
+  var exportData = {
+    version: DATA_VERSION,
+    exportedAt: new Date().toISOString(),
+    cabang: _activeCabang,
+    db: db,
+    products: getProducts(),
+    prodMods: getProdMods()
+  };
+  var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'TokoBan_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+  showToast('success', 'Data berhasil diexport!');
+}
+
+function importAllData(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  if (!confirm('Import data akan MENIMPA data yang ada saat ini. Lanjutkan?')) { event.target.value = ''; return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data.db || !data.version) {
+        showToast('error', 'Format file tidak valid');
+        event.target.value = '';
+        return;
+      }
+      saveDB(data.db);
+      if (data.prodMods) saveProdMods(data.prodMods);
+      showToast('success', 'Data berhasil diimport! ' + (data.db.sales?.length || 0) + ' transaksi, ' + (data.db.customers?.length || 0) + ' pelanggan');
+      renderDashboard();
+      renderInventory();
+    } catch(err) {
+      showToast('error', 'Gagal import: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─── Enhanced Dashboard ───
+function renderCabangComparison() {
+  var db = getDB(); if (!db) return '';
+  var bykSales = db.sales.filter(function(s){ return s.cabang === 'Banyumanik' || !s.cabang; });
+  var ungSales = db.sales.filter(function(s){ return s.cabang === 'Ungaran'; });
+  var bykRev = bykSales.reduce(function(t,s){ return t + (s.total||0); }, 0);
+  var ungRev = ungSales.reduce(function(t,s){ return t + (s.total||0); }, 0);
+  var total = bykRev + ungRev;
+
+  if (_activeCabang !== 'all') {
+    var activeRev = _activeCabang === 'Banyumanik' ? bykRev : ungRev;
+    return '<div class="stat-card accent-purple"><div class="stat-icon"><span class="ms">store</span></div><div class="stat-value" style="font-size:15px;">' + _activeCabang + '</div><div class="stat-label">Rp ' + formatRupiah(activeRev) + ' pendapatan</div></div>';
+  }
+
+  var bykPct = total > 0 ? Math.round(bykRev / total * 100) : 0;
+  var ungPct = total > 0 ? Math.round(ungRev / total * 100) : 0;
+
+  return '' +
+    '<div class="stat-card accent-green"><div class="stat-icon"><span class="ms">location_on</span></div><div class="stat-value" style="font-size:20px;">Banyumanik</div><div class="stat-label">Rp ' + formatRupiah(bykRev) + ' (' + bykPct + '%)</div></div>' +
+    '<div class="stat-card accent-orange"><div class="stat-icon"><span class="ms">location_on</span></div><div class="stat-value" style="font-size:20px;">Ungaran</div><div class="stat-label">Rp ' + formatRupiah(ungRev) + ' (' + ungPct + '%)</div></div>';
+}
+
 function genDailySummary() {
   var db = getDB(); if (!db) return;
   var today = new Date().toISOString().slice(0,10);
@@ -2049,9 +2155,10 @@ function callGroqAI(userText, settings, callback) {
   var apiKey = settings.groqKey || '';
   var model = settings.groqModel || 'llama-3.3-70b-versatile';
 
-  // Build messages with system prompt + history + current message
+  // Build messages with system prompt + business context + history + current message
+  var businessCtx = buildBusinessContext();
   var messages = [
-    { role: 'system', content: AI_SYSTEM_PROMPT },
+    { role: 'system', content: AI_SYSTEM_PROMPT + businessCtx },
   ];
   // Add history (last 6 messages to save tokens)
   var history = _aiHistory.slice(-6);
