@@ -39,8 +39,8 @@ except ImportError:
 AGENT_DEFINITIONS = [
     {
         "id": "supervisor",
-        "icon": "🧠",
-        "name": "Supervisor",
+        "icon": "🐱",
+        "name": "Mixmoi",
         "color": "#2E7D32",
         "bg_color": "#e8f5e9",
         "desc": "Mengatur & mendelegasi tugas ke semua agent",
@@ -432,7 +432,7 @@ class AICommandCenter:
                     for r in sub_results
                 ])
                 
-                supervisor_msg = genai_result.get("response", f"🧠 Supervisor: Mendelegasikan ke {len(chain)} agent!")
+                supervisor_msg = genai_result.get("response", f"🐱 Mixmoi: Mendelegasikan ke {len(chain)} agent!")
                 
                 return {
                     "action": "delegate_multi",
@@ -454,7 +454,7 @@ class AICommandCenter:
                 result = self._execute_by_action(action, params)
                 if result:
                     agent_def = AGENTS_BY_ID.get(agent_id, AGENTS_BY_ID["supervisor"])
-                    supervisor_msg = genai_result.get("response", f"🧠 Saya delegasikan ke {agent_def['icon']} {agent_def['name']}!")
+                    supervisor_msg = genai_result.get("response", f"🐱 Mixmoi: Saya delegasikan ke {agent_def['icon']} {agent_def['name']}!")
                     
                     if result.get("success"):
                         result["result"] = f"{supervisor_msg}\n\n{result['result']}"

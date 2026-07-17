@@ -1993,7 +1993,7 @@ class TokoBanApp:
     # Welcome message from Supervisor agent
     self._add_chat_message(
       "ai",
-      "Halo! Saya **Supervisor Agent**. Saya akan pilih agent terbaik untuk tugas Anda!\n\n"
+      "Halo! Saya **Mixmoi** 🐱. Saya akan pilih agent terbaik untuk tugas Anda!\n\n"
       "Coba ketik perintah berikut:\n\n"
       " \"cek stok\" → **Inventory Agent**\n"
       " \"promo random 3\" → **Marketing Agent**\n"
@@ -2017,7 +2017,7 @@ class TokoBanApp:
     
     self.active_agent_chip = ctk.CTkLabel(
       self.active_agent_chip_frame,
-      text="Supervisor Agent siap membantu...",
+      text="Mixmoi 🐱 siap membantu...",
       font=ctk.CTkFont(size=11),
       text_color=COLORS["text_light"],
       fg_color="#f0f0f0",
@@ -2494,7 +2494,7 @@ class TokoBanApp:
         )
         # Auto-reset after 3 seconds
         self.root.after(3000, lambda: self.active_agent_chip.configure(
-          text="Supervisor Agent siap membantu...",
+      text="Mixmoi 🐱 siap membantu...",
           text_color=COLORS["text_light"],
           fg_color="#f0f0f0"
         ))
