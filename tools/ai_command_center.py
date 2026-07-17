@@ -4,7 +4,7 @@ AI Command Center - Toko Ban Murah Anugerah
 Natural language command interpreter for all business tools.
 You just type what you want, AI does the rest!
 
-Now with Groq AI integration for smarter command understanding!
+Now with Gemini AI integration for smarter command understanding!
 """
 
 import re
@@ -23,12 +23,12 @@ try:
 except ImportError:
     _has_schedule = False
 
-# ─── Groq AI import (optional) ──────────────────────────────────────────────
+# ─── Gemini AI import (optional) ────────────────────────────────────────────
 try:
-    from groq import Groq
-    _has_groq = True
+    import google.generativeai as genai
+    _has_genai = True
 except ImportError:
-    _has_groq = False
+    _has_genai = False
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -171,8 +171,8 @@ def determine_agent(command: str) -> str:
     return max(scores, key=scores.get)
 
 
-# ─── System prompt for Groq ─────────────────────────────────────────────────
-GROQ_SYSTEM_PROMPT = """You are the Executive Growth Partner, Competitive Intelligence Analyst, and Content Strategist for Toko Ban Murah Anugerah.
+# ─── System prompt for Gemini ───────────────────────────────────────────────
+SYSTEM_PROMPT = """You are the Executive Growth Partner, Competitive Intelligence Analyst, and Content Strategist for Toko Ban Murah Anugerah.
 
 Your mission is to scan competitor moves, research local market tire prices, simplify data into high-level insights, and generate high-conversion marketing content that maximizes sales, service bay utilization, and overall profitability.
 
@@ -287,53 +287,54 @@ class AICommandCenter:
     AI Command Center that understands natural language commands
     and executes them across all 10 business tools.
 
-    Now with Groq AI support for smarter command interpretation!
-    Fallback to keyword matching if Groq is unavailable.
+    Now with Gemini AI support for smarter command interpretation!
+    Fallback to keyword matching if Gemini is unavailable.
     """
 
-    def __init__(self, tools: dict, groq_api_key: str = ""):
+    def __init__(self, tools: dict, genai_api_key: str = ""):
         self.tools = tools
         self.command_history = []
         self.conversation_log = []
 
-        # ─── Initialize Groq client ───────────────────────────────────────
-        self.groq_client = None
-        self.groq_model = "llama-3.1-8b-instant"  # or "llama-3.3-70b-versatile"
-        self._init_groq(groq_api_key)
+        # ─── Initialize Gemini ───────────────────────────────────────────
+        self.genai_configured = False
+        self.genai_model_name = "gemini-2.0-flash-lite"
+        self.genai_model = None
+        self._init_genai(genai_api_key)
 
         # ─── Scheduler ─────────────────────────────────────────────────────
         self.scheduler_jobs = []
         self.scheduler_running = False
         self.scheduler_thread = None
 
-    def _init_groq(self, api_key: str):
-        """Initialize the Groq client."""
-        if _has_groq and api_key:
+    def _init_genai(self, api_key: str):
+        """Initialize the Gemini client."""
+        if _has_genai and api_key:
             try:
-                self.groq_client = Groq(api_key=api_key)
+                genai.configure(api_key=api_key)
+                self.genai_model = genai.GenerativeModel(
+                    self.genai_model_name,
+                    system_instruction=SYSTEM_PROMPT,
+                    generation_config={
+                        "temperature": 0.1,
+                        "max_output_tokens": 500,
+                        "response_mime_type": "application/json",
+                    }
+                )
+                self.genai_configured = True
                 return True
             except Exception as e:
-                print(f"[AI] Failed to init Groq: {e}")
+                print(f"[AI] Failed to init Gemini: {e}")
         return False
 
-    def _interpret_with_groq(self, command: str) -> Optional[dict]:
-        """Use Groq AI to interpret a natural language command (Supervisor thinking)."""
-        if not self.groq_client:
+    def _interpret_with_genai(self, command: str) -> Optional[dict]:
+        """Use Gemini AI to interpret a natural language command (Supervisor thinking)."""
+        if not self.genai_configured:
             return None
 
         try:
-            completion = self.groq_client.chat.completions.create(
-                model=self.groq_model,
-                messages=[
-                    {"role": "system", "content": GROQ_SYSTEM_PROMPT},
-                    {"role": "user", "content": command}
-                ],
-                temperature=0.1,
-                max_tokens=500,
-                response_format={"type": "json_object"},
-            )
-
-            result_text = completion.choices[0].message.content.strip()
+            response = self.genai_model.generate_content(command)
+            result_text = response.text.strip()
             result = json.loads(result_text)
 
             # Validate the result has required fields
@@ -343,10 +344,10 @@ class AICommandCenter:
                 return None
 
         except json.JSONDecodeError:
-            print(f"[AI] Groq returned invalid JSON: {result_text}")
+            print(f"[AI] Gemini returned invalid JSON: {result_text}")
             return None
         except Exception as e:
-            print(f"[AI] Groq API error: {e}")
+            print(f"[AI] Gemini API error: {e}")
             return None
 
     def delegate_task(self, command: str) -> dict:
@@ -368,14 +369,14 @@ class AICommandCenter:
         }
         """
         
-        # ─── Try Groq for smart delegation ───────────────────────────────
-        groq_result = self._interpret_with_groq(command)
+        # ─── Try Gemini for smart delegation ─────────────────────────────
+        genai_result = self._interpret_with_genai(command)
         
-        if groq_result:
-            sub_agents = groq_result.get("sub_agents", [])
-            agent_id = groq_result.get("agent", "supervisor")
-            action = groq_result.get("action", "")
-            params = groq_result.get("params", {})
+        if genai_result:
+            sub_agents = genai_result.get("sub_agents", [])
+            agent_id = genai_result.get("agent", "supervisor")
+            action = genai_result.get("action", "")
+            params = genai_result.get("params", {})
             
             # ── MULTI-AGENT DELEGATION ──
             if action == "delegate_multi" and params.get("tasks"):
@@ -431,7 +432,7 @@ class AICommandCenter:
                     for r in sub_results
                 ])
                 
-                supervisor_msg = groq_result.get("response", f"🧠 Supervisor: Mendelegasikan ke {len(chain)} agent!")
+                supervisor_msg = genai_result.get("response", f"🧠 Supervisor: Mendelegasikan ke {len(chain)} agent!")
                 
                 return {
                     "action": "delegate_multi",
@@ -453,7 +454,7 @@ class AICommandCenter:
                 result = self._execute_by_action(action, params)
                 if result:
                     agent_def = AGENTS_BY_ID.get(agent_id, AGENTS_BY_ID["supervisor"])
-                    supervisor_msg = groq_result.get("response", f"🧠 Saya delegasikan ke {agent_def['icon']} {agent_def['name']}!")
+                    supervisor_msg = genai_result.get("response", f"🧠 Saya delegasikan ke {agent_def['icon']} {agent_def['name']}!")
                     
                     if result.get("success"):
                         result["result"] = f"{supervisor_msg}\n\n{result['result']}"
@@ -466,9 +467,9 @@ class AICommandCenter:
                     }]
                     return result
         
-        # ─── Fallback: keyword matching (NO RECURSION - uses _skip_groq=True) ──
+        # ─── Fallback: keyword matching (NO RECURSION - uses _skip_genai=True) ──
         fallback_agent = determine_agent(command)
-        result = self.process_command(command, _skip_groq=True)
+        result = self.process_command(command, _skip_genai=True)
         result["agent_id"] = fallback_agent
         result["sub_agents"] = [fallback_agent]
         result["delegation_chain"] = [{
@@ -478,12 +479,12 @@ class AICommandCenter:
         }]
         return result
 
-    def process_command(self, command: str, _skip_groq: bool = False) -> dict:
+    def process_command(self, command: str, _skip_genai: bool = False) -> dict:
         """
         SUPERVISOR PROCESSING: Process a command with multi-agent delegation.
         
         Strategy:
-        1. Try Groq AI (Supervisor thinking) for smart delegation
+        1. Try Gemini AI (Supervisor thinking) for smart delegation
            - Can delegate to SINGLE agent or MULTIPLE agents
         2. Fall back to keyword matching (always works)
         
@@ -502,8 +503,8 @@ class AICommandCenter:
         # ─── Determine which agent handles this ───────────────────────────
         predicted_agent = determine_agent(command)
 
-        # ─── TRY GROQ SUPERVISOR DELEGATION FIRST (skip if called from fallback) ──
-        if self.groq_client and not _skip_groq:
+        # ─── TRY GEMINI SUPERVISOR DELEGATION FIRST (skip if called from fallback) ──
+        if self.genai_configured and not _skip_genai:
             delegation = self.delegate_task(command)
             if delegation and delegation.get("success", False):
                 self._log_conversation(command, delegation)
@@ -606,7 +607,7 @@ class AICommandCenter:
         return result
 
     def _execute_by_action(self, action: str, params: dict) -> Optional[dict]:
-        """Execute a command by its action name (from Groq interpretation)."""
+        """Execute a command by its action name (from Gemini interpretation)."""
         action_map = {
             "inventory_check": lambda: self._cmd_inventory_check("cek stok"),
             "inventory_low_stock": lambda: self._cmd_inventory_low_stock("stok menipis"),
@@ -672,13 +673,23 @@ class AICommandCenter:
             "timestamp": datetime.now().isoformat()
         })
 
-    def set_groq_api_key(self, api_key: str) -> bool:
-        """Update the Groq API key at runtime."""
-        return self._init_groq(api_key)
+    def set_genai_api_key(self, api_key: str) -> bool:
+        """Update the Gemini API key at runtime."""
+        return self._init_genai(api_key)
 
-    def set_groq_model(self, model: str):
-        """Change the Groq model (e.g., 'mixtral-8x7b-32768' or 'llama3-70b-8192')."""
-        self.groq_model = model
+    def set_genai_model(self, model: str):
+        """Change the Gemini model name."""
+        self.genai_model_name = model
+        if self.genai_configured:
+            self.genai_model = genai.GenerativeModel(
+                self.genai_model_name,
+                system_instruction=SYSTEM_PROMPT,
+                generation_config={
+                    "temperature": 0.1,
+                    "max_output_tokens": 500,
+                    "response_mime_type": "application/json",
+                }
+            )
 
     # ═══════════════════════════════════════════════════════════════════
     # COMMAND PATTERNS (Fallback keyword matching)
@@ -741,7 +752,7 @@ class AICommandCenter:
 • "buat konten [promo/tips/produk]" - Buat konten Instagram + caption
 • "buat konten [topik] di Ungaran" - Konten spesifik lokasi
 
-🤖 *AUTOMASI BARU (pake Groq AI):*
+🤖 *AUTOMASI BARU (pake Gemini AI):*
 • "promo random 5 orang" - Kirim promo ke N pelanggan acak
 • "promo gold/platinum" - Kirim promo berdasarkan tier member
 • "balas [pesan]" - Dapat balasan cerdas untuk chat pelanggan
@@ -1862,7 +1873,7 @@ MASIH RAGU? CHAT LANGSUNG!
 
     # ─── AI AUTO-REPLY ───────────────────────────────────────────────
     def _cmd_ai_auto_reply(self, cmd: str) -> Optional[dict]:
-        """Generate a smart AI auto-reply using Groq."""
+        """Generate a smart AI auto-reply using Gemini."""
         # Extract the incoming message
         match = re.search(r'balas\s+(.+)|replies\s+(.+)|jawab\s+(.+)', cmd)
         incoming_message = None
@@ -1883,7 +1894,7 @@ MASIH RAGU? CHAT LANGSUNG!
                 }
             return None
 
-        # Use Groq to generate a smart reply
+        # Use Gemini to generate a smart reply
         prompt = f"""Anda adalah asisten toko ban "Toko Ban Murah Anugerah". 
 Buat balasan WhatsApp yang ramah, profesional, dan membantu untuk pesan pelanggan ini:
 
@@ -1899,17 +1910,16 @@ Balasan harus:
 Balasan:"""
 
         reply = None
-        if self.groq_client:
+        if self.genai_configured:
             try:
-                completion = self.groq_client.chat.completions.create(
-                    model=self.groq_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.7,
-                    max_tokens=200,
+                reply_model = genai.GenerativeModel(
+                    self.genai_model_name,
+                    generation_config={"temperature": 0.7, "max_output_tokens": 200}
                 )
-                reply = completion.choices[0].message.content.strip()
+                response = reply_model.generate_content(prompt)
+                reply = response.text.strip()
             except Exception as e:
-                print(f"[AI] Groq reply error: {e}")
+                print(f"[AI] Gemini reply error: {e}")
 
         if not reply:
             # Fallback to template matching
