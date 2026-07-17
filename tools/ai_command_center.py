@@ -1802,21 +1802,22 @@ MASIH RAGU? CHAT LANGSUNG!
         if not company:
             return None
 
-        # Fetch API keys
-        serper_key = os.environ.get("SERPER_API_KEY", "")
-        groq_key = os.environ.get("GROQ_API_KEY", "")
-
-        if not serper_key or not groq_key:
-            missing = []
-            if not serper_key:
-                missing.append("SERPER_API_KEY")
-            if not groq_key:
-                missing.append("GROQ_API_KEY")
+        # Use configured Groq client from AI Command Center
+        if not self.groq_configured:
             return {
                 "action": "company_research",
                 "success": False,
-                "result": f"❌ API key tidak ditemukan: {', '.join(missing)}\n"
-                          f"Tambahkan ke file .env untuk menggunakan fitur riset perusahaan.",
+                "result": "❌ Groq AI belum dikonfigurasi.\n"
+                          "Buka Pengaturan (gear icon) → masukkan Groq API Key → Simpan.",
+                "data": {},
+            }
+
+        serper_key = os.environ.get("SERPER_API_KEY", "")
+        if not serper_key:
+            return {
+                "action": "company_research",
+                "success": False,
+                "result": "❌ SERPER_API_KEY tidak ditemukan di .env",
                 "data": {},
             }
 
@@ -1828,7 +1829,7 @@ MASIH RAGU? CHAT LANGSUNG!
                 "data": {},
             }
 
-        result = research_company(company, serper_key, groq_key)
+        result = research_company(company, serper_key, self.groq_client)
         return result
 
     # ═══════════════════════════════════════════════════════════════════

@@ -106,7 +106,7 @@ Return ONLY the report in clean markdown format.
 def research_company(
     company: str,
     serper_api_key: str,
-    groq_api_key: str,
+    groq_client,
 ) -> dict:
     """
     Research a company by name/domain.
@@ -129,16 +129,15 @@ def research_company(
         news_text = _extract_text_from_results(news_data)
         search_text += f"\n\n=== News ===\n{news_text}"
 
-    # 3. Synthesize with Groq
+    # 3. Synthesize with Groq (use passed-in client)
     report = None
-    if _has_groq and groq_api_key:
+    if groq_client:
         try:
-            client = Groq(api_key=groq_api_key)
-            report = _synthesize_report(company, search_text, client, "llama-3.3-70b-versatile")
+            report = _synthesize_report(company, search_text, groq_client, "llama-3.3-70b-versatile")
             if not report:
-                report = _synthesize_report(company, search_text, client, "llama-3.3-70b-versatile")
+                report = _synthesize_report(company, search_text, groq_client, "llama-3.1-8b-instant")
         except Exception as e:
-            print(f"[CompanyResearch] Groq init error: {e}")
+            print(f"[CompanyResearch] Groq synthesis error: {e}")
 
     if not report:
         # Fallback: return raw search data formatted

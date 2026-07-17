@@ -2697,8 +2697,8 @@ class TokoBanApp:
                   text_color=status_color)
     status_label.pack(anchor="w", pady=(5, 0))
 
-    # ── API Key Input ──
-    ctk.CTkLabel(body, text="🔐 Your Groq API Key",
+    # ── Groq API Key Input ──
+    ctk.CTkLabel(body, text="🔐 Your Groq API Key (wajib untuk AI)",
           font=ctk.CTkFont(size=13, weight="bold"),
           text_color=COLORS["text"]).pack(anchor="w")
 
@@ -2706,7 +2706,6 @@ class TokoBanApp:
           font=ctk.CTkFont(size=11),
           text_color=COLORS["text_light"]).pack(anchor="w", pady=(2, 8))
 
-    # Entry with paste-friendly design
     current_key = os.environ.get("GROQ_API_KEY", "")
     api_entry = ctk.CTkEntry(
       body,
@@ -2718,10 +2717,31 @@ class TokoBanApp:
       border_color="#d0d0d0"
     )
     api_entry.pack(fill="x")
-
-    # Pre-fill if key exists (masked)
     if current_key and len(current_key) > 10:
       api_entry.insert(0, current_key)
+
+    # ── Serper API Key Input ──
+    ctk.CTkLabel(body, text="🔍 Your Serper API Key (untuk riset perusahaan)",
+          font=ctk.CTkFont(size=13, weight="bold"),
+          text_color=COLORS["text"]).pack(anchor="w", pady=(15, 0))
+
+    ctk.CTkLabel(body, text="Get your free key at serper.dev → API Keys",
+          font=ctk.CTkFont(size=11),
+          text_color=COLORS["text_light"]).pack(anchor="w", pady=(2, 8))
+
+    current_serper = os.environ.get("SERPER_API_KEY", "")
+    serper_entry = ctk.CTkEntry(
+      body,
+      placeholder_text="Paste your Serper API key here",
+      font=ctk.CTkFont(size=13, family="Consolas"),
+      height=42,
+      corner_radius=8,
+      border_width=2,
+      border_color="#d0d0d0"
+    )
+    serper_entry.pack(fill="x")
+    if current_serper and len(current_serper) > 10:
+      serper_entry.insert(0, current_serper)
 
     # ── Quick Links ──
     link_frame = ctk.CTkFrame(body, fg_color="transparent")
@@ -2730,12 +2750,22 @@ class TokoBanApp:
     def open_groq_console():
       webbrowser.open("https://console.groq.com/keys")
 
-    ctk.CTkButton(link_frame, text="🌐 Get Free API Key at Groq Console",
+    ctk.CTkButton(link_frame, text="🌐 Get Groq API Key",
            font=ctk.CTkFont(size=11),
            fg_color="#f0f0f0", text_color=COLORS["primary"],
            hover_color="#e0e0e0",
            command=open_groq_console,
-           height=30, corner_radius=8).pack(fill="x")
+           height=30, corner_radius=8).pack(side="left", padx=(0, 5))
+
+    def open_serper_console():
+      webbrowser.open("https://serper.dev")
+
+    ctk.CTkButton(link_frame, text="🔍 Get Serper API Key",
+           font=ctk.CTkFont(size=11),
+           fg_color="#f0f0f0", text_color=COLORS["primary"],
+           hover_color="#e0e0e0",
+           command=open_serper_console,
+           height=30, corner_radius=8).pack(side="left")
 
     # ── Action Buttons ──
     btn_frame = ctk.CTkFrame(body, fg_color="transparent")
@@ -2748,41 +2778,57 @@ class TokoBanApp:
     save_status.pack(pady=(0, 8))
 
     def save_api_key():
-      """Save the API key to .env and reload the Groq client."""
-      key = api_entry.get().strip()
+      """Save API keys to .env and reload Groq client."""
+      groq_key = api_entry.get().strip()
+      serper_key = serper_entry.get().strip()
 
-      if not key:
-        save_status.configure(text="Please enter an API key!", text_color=COLORS["danger"])
+      if not groq_key:
+        save_status.configure(text="Please enter a Groq API key!", text_color=COLORS["danger"])
         return
 
       try:
-        # Save to .env file
         env_path = BASE_DIR / ".env"
-        env_content = f"# Groq API Key\n# Get your free API key at: https://console.groq.com/keys\nGROQ_API_KEY={key}\n"
+        env_lines = []
+        groq_found = False
+        serper_found = False
+        if env_path.exists():
+          with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+              if line.startswith("GROQ_API_KEY="):
+                env_lines.append(f"GROQ_API_KEY={groq_key}\n")
+                groq_found = True
+              elif line.startswith("SERPER_API_KEY="):
+                if serper_key:
+                  env_lines.append(f"SERPER_API_KEY={serper_key}\n")
+                  serper_found = True
+                else:
+                  env_lines.append(line)
+              else:
+                env_lines.append(line)
+        if not groq_found:
+          env_lines.append(f"\nGROQ_API_KEY={groq_key}\n")
+        if serper_key and not serper_found:
+          env_lines.append(f"SERPER_API_KEY={serper_key}\n")
         with open(env_path, "w", encoding="utf-8") as f:
-          f.write(env_content)
+          f.writelines(env_lines)
 
-        # Update current environment
-        os.environ["GROQ_API_KEY"] = key
-
-        # Reload the .env file
+        os.environ["GROQ_API_KEY"] = groq_key
+        if serper_key:
+          os.environ["SERPER_API_KEY"] = serper_key
         load_dotenv(dotenv_path=str(env_path), override=True)
 
-        # Reinitialize Groq client in AI Command Center
-        success = self.tools["ai"].set_groq_api_key(key)
-
-        # Update UI status
+        success = self.tools["ai"].set_groq_api_key(groq_key)
         self._update_groq_status()
 
         if success:
-          save_status.configure(text="API Key saved & Groq AI is NOW ACTIVE!",
+          save_status.configure(text="Keys saved & Groq AI is ACTIVE!",
                      text_color=COLORS["success"])
           status_label.configure(
             text="Connected! Groq AI is active.",
             text_color=COLORS["success"]
           )
         else:
-          save_status.configure(text="Key saved but Groq init failed. Check your key.",
+          save_status.configure(text="Groq key saved but init failed. Check your key.",
                      text_color=COLORS["warning"])
           status_label.configure(
             text="Key saved but connection failed.",
