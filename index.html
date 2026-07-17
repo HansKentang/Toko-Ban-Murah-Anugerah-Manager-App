@@ -2195,6 +2195,13 @@ Anda bisa menghasilkan:
 - **Hashtags:** #Tokobanmurahanugerah #BanMurah #BanOriginal #SatSet #Semarang
 - **CTA:** Selalu sertakan "WA: 081280595845"
 
+## 🖥️ DESKTOP APP SPECIAL COMMAND
+Ada Desktop App (Python) yang terkunci secara default. Jika user berkata "open desktop" atau "buka desktop" atau "unlock desktop":
+- Jawab dengan antusias bahwa Desktop App akan dibuka
+- SEBUTKAN bahwa Desktop App berisi semua tools bisnis termasuk AI Command Center dengan Mixmoi 🐱
+- INGATKAN untuk menjalankan: cd "Toko Ban Murah Anugerah Manager App" && python main.py
+- Desktop App akan otomatis terbuka di web ini setelah perintah diberikan
+
 ## 📝 ATURAN PERCAKAPAN
 - Gunakan bahasa Indonesia natural & ramah
 - Jika perintah kurang jelas, TANYAKAN detailnya sebelum menjawab
@@ -2242,6 +2249,28 @@ function aiSend(msg) {
   var s = getSettings();
   var key = s.groqKey || '';
   
+  // ─── Desktop Unlock Command ───
+  var unlockMatch = text.match(/^(open desktop|buka desktop|unlock desktop|buka app|open app)/i);
+  if (unlockMatch) {
+    document.getElementById('typing')?.remove();
+    unlockDesktop();
+    var unlockReply = '🐱 **Desktop App terbuka!**\n\n' +
+      'Saya telah membuka akses ke Desktop App untuk Anda! 🎉\n\n' +
+      '💻 **Cara menjalankan:**\n' +
+      '1. Buka terminal/command prompt\n' +
+      '2. Masuk ke folder project\n' +
+      '3. Jalankan: **python main.py**\n' +
+      '4. Desktop App akan muncul dengan semua tools bisnis + Mixmoi 🐱\n\n' +
+      'Atau klik **💻 Desktop App** di sidebar untuk melihat panduan lengkapnya!';
+    var formatted = unlockReply.replace(/\n/g, '<br>');
+    msgs.innerHTML += '<div class="chat-bubble ai">' + formatted + '<div class="chat-ts">' + new Date().toLocaleTimeString('id-ID') + '</div></div>';
+    msgs.scrollTop = msgs.scrollHeight;
+    _aiHistory.push({ role: 'assistant', content: unlockReply });
+    showToast('success', '🔓 Desktop App terbuka!');
+    input.value = '';
+    return;
+  }
+
   if (key && key.startsWith('gsk_') && key.length >= 20) {
     // ─── Detect Company Research ───
     var researchMatch = text.match(/^(research|riset|cari perusahaan|profil|info|teliti)\s+(.+)/i);
@@ -2467,6 +2496,7 @@ renderDashboard();
 
 // Chat input enter key
 document.addEventListener('DOMContentLoaded', function() {
+  updateDesktopUI();
   var ci = document.getElementById('chatInput');
   if (ci) ci.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') aiSend();
