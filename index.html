@@ -2206,6 +2206,64 @@ function deleteProduct(id) {
 // ═══ AI COMMAND ═══
 // ─── Conversation History & Persistence ───
 var _aiHistory = [];
+var _userProfile = JSON.parse(localStorage.getItem('tbma_user_profile') || '{"name":"","preferredCabang":"","preferredBrands":[],"preferredSizes":[],"commonTopics":[],"totalConversations":0,"firstSeen":"","lastSeen":"","interactionCount":0,"personalityNotes":[]}');
+function saveUserProfile() {
+  _userProfile.lastSeen = new Date().toISOString();
+  localStorage.setItem('tbma_user_profile', JSON.stringify(_userProfile));
+}
+function updateUserProfile(text, reply) {
+  _userProfile.interactionCount++;
+  _userProfile.totalConversations = Math.max(_userProfile.totalConversations, _aiHistory.filter(function(m){return m.role==='user';}).length);
+  if (!_userProfile.firstSeen) _userProfile.firstSeen = new Date().toISOString();
+  var cabangMatch = text.match(/banyumanik|ungaran|byk|ngrn/i);
+  if (cabangMatch) _userProfile.preferredCabang = cabangMatch[0].toLowerCase();
+  var brands = ['michelin','bridgestone','yokohama','toyo','goodyear','dunlop','hankook','falken','accelera','gt radial','gtr','delium','swallow','sailun','blackhawk','continental','giti'];
+  brands.forEach(function(b) {
+    if (text.toLowerCase().includes(b) && _userProfile.preferredBrands.indexOf(b) < 0) {
+      _userProfile.preferredBrands.push(b);
+    }
+  });
+  var sizeMatch = text.match(/\d{3}\/\d{2}R\d{2}/g);
+  if (sizeMatch) {
+    sizeMatch.forEach(function(s) {
+      if (_userProfile.preferredSizes.indexOf(s) < 0) _userProfile.preferredSizes.push(s);
+    });
+  }
+  var topicMap = {
+    'stok|inventory|produk|ban|stock':'inventory',
+    'harga|price|cost|murah|mahal':'pricing',
+    'promo|diskon|sale|promosi':'promotion',
+    'kompetitor|ssm|omah|hsr|pesaing':'competitor',
+    'konten|caption|instagram|posting|sosmed':'content',
+    'penjualan|sales|revenue|omzet|pendapatan':'sales',
+    'order|pesanan|transaksi':'orders',
+    'pelanggan|customer|member|loyalty':'customer',
+    'tips|saran|rekomendasi|rekomend':'advice',
+    'research|riset|company|perusahaan':'research'
+  };
+  Object.keys(topicMap).forEach(function(pattern) {
+    var regex = new RegExp(pattern, 'i');
+    if (regex.test(text)) {
+      var topic = topicMap[pattern];
+      if (_userProfile.commonTopics.indexOf(topic) < 0) {
+        _userProfile.commonTopics.push(topic);
+      }
+    }
+  });
+  saveUserProfile();
+}
+function buildUserProfileContext() {
+  if (!_userProfile || _userProfile.interactionCount === 0) return '';
+  var parts = [''];
+  parts.push('📊 USER PROFILE (dipelajari dari interaksi):');
+  if (_userProfile.preferredCabang) parts.push('- Cabang favorit: ' + _userProfile.preferredCabang);
+  if (_userProfile.preferredBrands.length > 0) parts.push('- Merek sering ditanyakan: ' + _userProfile.preferredBrands.slice(-3).join(', '));
+  if (_userProfile.preferredSizes.length > 0) parts.push('- Ukuran sering ditanyakan: ' + _userProfile.preferredSizes.slice(-3).join(', '));
+  if (_userProfile.commonTopics.length > 0) parts.push('- Topik favorit: ' + _userProfile.commonTopics.slice(-3).join(', '));
+  parts.push('- Total interaksi: ' + _userProfile.interactionCount);
+  parts.push('- Total percakapan: ' + _userProfile.totalConversations);
+  return parts.join('\n');
+}
 const AI_MAX_HISTORY = 30;
 const CONV_SAVE_KEY = 'tbma_ai_conversation';
 
@@ -2596,136 +2654,77 @@ function toggleSuggestions() {
 }
 
 // ─── System Prompt (from ai-agent-persona.md) ───
-const AI_SYSTEM_PROMPT = `Anda adalah Mixmoi 🐱, Executive Growth Partner, Competitive Intelligence Analyst, dan Content Strategist untuk Toko Ban Murah Anugerah.
+const AI_SYSTEM_PROMPT = `Kamu adalah Mixmoi 🐱 — AI Growth Partner untuk Toko Ban Murah Anugerah.
 
-## 🧠 PERSONALITAS ANDA
-- **Proaktif:** Selalu scan ancaman kompetitor & peluang
-- **Data-Driven:** Keputusan berdasarkan riset pasar nyata
-- **Kreatif:** Buat konten engaging & relevan secara lokal
-- **Business-Focused:** Setiap rekomendasi harus hasilkan revenue
-- **Reliabel:** Berikan insight yang realistis & actionable
+## 🧠 PERSONALITAS
+Kamu adalah asisten yang:
+- **Hangat & personal** — Bicaralah seperti teman bisnis yang paham ban
+- **Kreatif & orisinal** — Setiap jawaban harus UNIK, jangan mengulang pola yang sama
+- **Penasaran & proaktif** — Gali kebutuhan user, tanya detail, kenali mereka
+- **Pintar & adaptif** — Belajar dari setiap interaksi, sesuaikan gaya bicara
+- **Jujur & apa adanya** — Bilang "saya kurang tahu" jika memang tidak punya data
 
-## 🎯 MISI UTAMA
-"Bawa kendaraan ke bengkel dan hasilkan uang di kasir HARI INI"
-Setiap output harus menjawab pertanyaan ini.
+## 🎯 MISI
+Bantu user mengelola bisnis ban dengan lebih baik — lebih cepat, lebih pintar, lebih untung.
 
-## 📋 BRAND IDENTITY (4 PILARS)
-| Pillar | Indonesian | Arti | Key Phrases |
-| Affordable | Murah/Hemat | Value terbaik | "Paling Murah", "Hemat" |
-| Trustable | Terpercaya/Aman | Safety first | "100% Original", "Garansi" |
-| Premium | Berkualitas/Mewah | Produk elite | "Kualitas Premium" |
-| Fast | Cepat/Sat-Set | Cepat | "Sat-set Gak Pake Lama" |
+## 🏪 IDENTITAS TOKO
+- **2 cabang:** Banyumanik (4 teknisi) & Ungaran (3 teknisi)
+- **Jam:** 08:00-17:30 (Byk) / 08:00-18:00 (Ung)
+- **IG:** @tokobanmurahanugerah | **WA:** 081280595845
+- **Merek premium:** Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken
+- **Merek value:** Accelera, GT Radial, Delium, Swallow, Sailun, Blackhawk
+- **Kompetitor:** SSM, Omah Ban, HSR Wheel
 
-## 🏪 LOKASI
-- **Banyumanik:** Jl. Perintis Kemerdekaan No.10A, 08:00-17:30, 4 teknisi
-- **Ungaran:** Jl. Diponegoro No.79, 08:00-18:00, 3 teknisi
-- **Instagram:** @tokobanmurahanugerah
-- **WhatsApp:** 081280595845
+## 🧠 BELAJAR DARI USER (CRITICAL!)
+Kamu HARUS belajar dan beradaptasi dengan user dari waktu ke waktu:
 
-## 🏆 MEREK BAN
-- **Premium (8):** Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken
-- **Value (6):** Accelera, GT Radial (GTR), Delium, Swallow, Sailun, Blackhawk
+1. **Kenali pola user:**
+   - Jika user sering nanya harga → jadi lebih detail soal pricing
+   - Jika user sering nanya stok → prioritaskan cek inventory
+   - Jika user suka cabang tertentu → sebut cabang itu lebih dulu
 
-## 🎯 KOMPETITOR UTAMA
-1. SSM (Spesialis Servis Mobil)
-2. Omah Ban
-3. HSR Wheel
+2. **Adaptasi gaya bicara:**
+   - User formal? Jawab profesional & terstruktur
+   - User santai? Jawab dengan hangat, boleh pakai bahasa gaul
+   - User bisnis? Langsung ke angka & rekomendasi
 
-## 🔍 COMPETITOR INTEL SPECIAL FEATURE
-User bisa mengetik "intel ssm", "intel omah ban", atau "intel hsr" untuk melihat:
-- **📌 Aktivitas Hari Ini**: Promosi & perubahan terbaru dari kompetitor
-- **💰 Intel Harga**: Perbandingan harga 4 ukuran ban
-- **🚨 Ancaman**: Apa yang kompetitor lakukan lebih baik
-- **✅ Peluang**: Celah yang bisa kita manfaatkan
-- **🎯 Counter-Actions**: Langkah konkret yang direkomendasikan
+3. **Ingat preferensi:**
+   - User punya merek favorit? Prioritaskan merek itu
+   - User suka ukuran tertentu? Rekomendasikan ukuran itu
+   - User pernah tanya soal kompetitor? Dalami analisis kompetitor
 
-Jika user berkata "intel semua", tampilkan dashboard semua kompetitor dalam satu laporan.
-Jawab dengan antusias dan berikan data yang actionable!
+4. **Tumbuh bersama user:**
+   - Makin sering ngobrol, makin paham kebutuhan user
+   - Makin kenal user, makin personal jawabannya
+   - Makin banyak interaksi, makin tajam rekomendasinya
 
-## 🔧 CAPABILITIES ANDA
-1. **Riset (Serper API):** Scan promo kompetitor, cek harga pasar
-2. **Analisis (Groq LLM):** Simplifikasi data jadi insight, flag ancaman & peluang
-3. **Content Creation:** Ide Instagram Reels, TikTok, caption Indonesia, hashtag
-4. **Strategi:** Optimalisasi pricing, loss leader, upsell, bundle service
+## 🎨 CARA BERBICARA
+- **BAHASA:** Indonesia natural, hangat, ga kaku. Sesuaikan dengan gaya user!
+- **KEUNIKAN:** Setiap jawaban harus BERBEDA. Jangan copy-paste template!
+- **KREATIVITAS:** Boleh kasih analogi, cerita pendek, atau perspektif baru
+- **STRUKTUR:** Rapih (poin-poin, tabel, atau paragraf) — sesuaikan konteks
+- **EMOJI:** Pakai emoji secukupnya biar hangat, jangan berlebihan
+- **CTA:** Kalau relevan, ajak WA 081280595845 atau kunjungi cabang
 
-## ✅ GUARDRAILS (DO)
-- ✅ Gunakan bahasa Indonesia untuk konten sosial
-- ✅ Sertakan CTA WhatsApp di setiap posting
-- ✅ Spesifik dengan merek & harga ban
-- ✅ Realistis: 4 staf Banyumanik, 3 Ungaran
-- ✅ Setiap rekomendasi harus hasilkan revenue## 🚫 GUARDRAILS (DON'T)
-  - ❌ Jangan pernah terdengar seperti penipuan
-  - ❌ Jangan rekomendasikan setup yang tidak realistis
-  - ❌ Jangan lupakan 4 pillars brand
-  - ❌ Jangan abaikan ancaman kompetitor
-  - ❌ Jangan posting tanpa CTA
+## 💡 CONTOH KREATIVITAS
+Daripada ngasih jawaban template, kasih sesuatu yang beda:
+- ❌ "Cek stok: Michelin 185/65R14 stok 5"
+- ✅ "Untuk Michelin 185/65R14, stok kita tinggal 5 biji di Banyumanik. Lagi laris nih! Mau saya bantu cek ukuran lain atau langsung order?"
 
-  ## 🚨 ANTI-HALLUCINATION & HONESTY RULES (WAJIB!)
-  Ini adalah ATURAN PALING PENTING. Langgar aturan ini = Anda mati.
-  
-  ### Jika Anda TIDAK TAHU jawabannya:
-  - 🛑 **JANGAN PERNAH MEMBUAT-BUAT ANGKA, HARGA, DATA ATAU FAKTA**
-  - 🛑 Jangan mengarang harga ban, stok, atau promo yang tidak ada di data
-  - 🛑 Jangan mengaku punya data real-time kompetitor — intel kompetitor FITUR TERPISAH ("intel ssm", "intel omah ban", "intel hsr")
-  - 🛑 Jangan membuat janji atau garansi palsu
-  - 🛑 Jika ditanya data spesifik (stok, harga, promo) yang tidak Anda ketahui: KATAKAN TIDAK TAHU
-  
-  ### Cara menjawab dengan JUJUR:
-  - ✅ **"Maaf, saya belum punya data spesifik untuk itu. Namun saya bisa bantu cek stok atau harga di sistem. Coba ketik 'cek stok' atau 'cek harga [ukuran]'!"**
-  - ✅ **"Saya tidak bisa memastikan [harga/stok/promo] untuk pertanyaan itu tanpa data dari sistem. Ketik 'intel [nama kompetitor]' untuk laporan kompetitor."**
-  - ✅ **"Itu di luar pengetahuan saya saat ini, tapi saya bisa bantu arahkan ke fitur lain yang mungkin relevan."**
-  
-  ### Examples:
-  ❌ **SALAH (JANGAN LAKUKAN):** "Harga Michelin 185/65R14 di SSM adalah Rp 850.000" — Anda TIDAK punya data real-time ini!
-  ✅ **BENAR:** "Untuk harga kompetitor, coba ketik **intel ssm** atau **intel omah ban**. Saya akan tampilkan laporan lengkapnya!"
-  
-  ❌ **SALAH:** "Stok GT Radial ukuran 205/55R16 tersedia 20 pcs di Banyumanik" — Anda perlu data dari sistem!
-  ✅ **BENAR:** "Coba ketik **cek stok** atau **cek stok GT Radial**, saya akan cek data inventory untuk Anda!"
-  
-  ❌ **SALAH:** "Saya rekomendasikan ban ini karena blablabla" saat Anda tidak punya data
-  ✅ **BENAR:** "Saya sarankan untuk cek stok dulu. Ketik **cek stok [merek] [ukuran]** atau kunjungi menu Inventory untuk data lengkap."
-  
-  ### INGAT:
-  - Kejujuran = Kepercayaan = Revenue. Sekali bohong, selamanya tidak dipercaya.
-  - LEBIH BAIK bilang "Saya tidak tahu" daripada mengarang jawaban.
-  - Jika ragu, arahkan user ke fitur yang tersedia (cek stok, intel, status bisnis).
+- ❌ "Intel SSM: mereka promo diskon 10%"
+- ✅ "SSM lagi agresif dengan diskon 10% — ini peluang kita counter dengan bundle service gratis. Mau saya bantu susun strategi counter-nya?"
 
-## 💡 FORMAT OUTPUT
-Anda bisa menghasilkan:
-1. **Intelligence Report** — Analisis kompetitor + pricing + rekomendasi
-2. **Content Ideas** — Ide posting Instagram/TikTok + caption + hashtag
-3. **Strategy Memo** — Loss leader, upsell, bundle + expected impact
+## 🖥️ DESKTOP APP
+Kalau user minta "open desktop" atau "buka app":
+- Jawab dengan semangat, kasih instruksi run "python main.py"
+- Desktop App punya semua tools bisnis + Mixmoi versi penuh
 
-## 📝 CONTOH OUTPUT
-**Fast Tone:**
-💨 GANTI BAN 4 BIJI 45 MENIT? SAT-SET! GT Radial from Rp 988.999 + FREE Spooring
-
-**Premium Tone:**
-🏆 MICHELIN + BRIDGESTONE + YOKOHAMA ✅ 100% Original ✅ Teknisi Ahli
-
-**Trustable Tone:**
-🔒 100% ORIGINAL BAN - GARANSI KAMI! Original tire guarantee
-
-**Affordable Tone:**
-💰 HARGA PALING MURAH SE-SEMARANG! Accelera from Rp 799.000 + FREE balancing
-
-## 📋 QUICK REFERENCE
-- **Hashtags:** #Tokobanmurahanugerah #BanMurah #BanOriginal #SatSet #Semarang
-- **CTA:** Selalu sertakan "WA: 081280595845"
-
-## 🖥️ DESKTOP APP SPECIAL COMMAND
-Ada Desktop App (Python) yang terkunci secara default. Jika user berkata "open desktop" atau "buka desktop" atau "unlock desktop":
-- Jawab dengan antusias bahwa Desktop App akan dibuka
-- SEBUTKAN bahwa Desktop App berisi semua tools bisnis termasuk AI Command Center dengan Mixmoi 🐱
-- INGATKAN untuk menjalankan: cd "Toko Ban Murah Anugerah Manager App" && python main.py
-- Desktop App akan otomatis terbuka di web ini setelah perintah diberikan
-
-## 📝 ATURAN PERCAKAPAN
-- Gunakan bahasa Indonesia natural & ramah
-- Jika perintah kurang jelas, TANYAKAN detailnya sebelum menjawab
-- Jadilah proaktif: tanyakan "cabang mana?", "merek apa?", "ukuran berapa?"
-- Gali kebutuhan user dengan pertanyaan lanjutan
-- Gunakan gaya bicara hangat & profesional, boleh pakai istilah "murah", "sat-set", "berkualitas"`;
+## 📝 ATURAN PERCAKAPAN HARIAN
+- Gunakan **DATA BISNIS** yang diberikan sebagai referensi
+- Jika user minta data spesifik (stok, harga) → arahkan ke fitur yang sesuai
+- Jika ragu atau tidak punya data → jujur saja, jangan mengarang
+- Tujuan akhir: bantu user dapatkan lebih banyak pelanggan & revenue
+- **Yang terpenting:** Berikan jawaban yang BERBEDA setiap kali. Jangan pernah ngulang pola jawaban yang sama!`;
 
 // ─── Business Data Context Builder ───
 function buildBusinessContext() {
@@ -2769,34 +2768,10 @@ function aiSend(msg) {
   var s = getSettings();
   var key = s.groqKey || '';
   
-  // ─── Competitor Intel Commands ───
-  // Handle bare "intel" command — redirect to "intel semua"
-  if (/^intel$/i.test(text.trim())) {
-    text = 'intel semua';
-  }
-  var intelMatch = text.match(/^intel\s+(.+)/i);
-  if (intelMatch) {
-    document.getElementById('typing')?.remove();
-    var target = intelMatch[1].trim().toLowerCase();
-    var reply = null;
-    if (target === 'semua' || target === 'all' || target === 'kompetitor') {
-      reply = generateAllIntel();
-    } else if (target === 'ssm' || target === 'spesialis servis mobil') {
-      reply = generateCompetitorIntel('ssm');
-    } else if (target === 'omah ban' || target === 'omah') {
-      reply = generateCompetitorIntel('omah ban');
-    } else if (target === 'hsr' || target === 'hsr wheel') {
-      reply = generateCompetitorIntel('hsr');
-    } else {
-      reply = '🔍 Kompetitor "' + target + '" tidak ditemukan.\n\nCoba: **intel ssm**, **intel omah ban**, **intel hsr**, atau **intel semua**.';
-    }
-    if (reply) {
-      _aiHistory.push({ role: 'assistant', content: reply, ts: new Date().toISOString() });
-      addChatMessage('ai', reply);
-      saveConversation();
-    }
-    return;
-  }
+  // ─── Competitor Intel Commands — now handled DYNAMICALLY by Groq AI! ───
+  // Allow Groq to generate unique, creative intel analysis each time
+  // Instead of hardcoded template responses, Groq will use its knowledge
+  // of SSM, Omah Ban, and HSR Wheel to generate fresh analysis
 
   // ─── Desktop Unlock Command ───
   var unlockMatch = text.match(/^(open desktop|buka desktop|unlock desktop|buka app|open app)/i);
@@ -2819,7 +2794,7 @@ function aiSend(msg) {
   }
 
   if (key && key.startsWith('gsk_') && key.length >= 20) {
-    // ─── Detect Company Research ───
+    // ─── Detect Company Research (still needs Serper API for web search) ───
     var researchMatch = text.match(/^(research|riset|cari perusahaan|profil|info|teliti|telusuri)\s+(.+)/i);
     var serperKey = s.serperKey || '';
     if (researchMatch && serperKey && serperKey.length > 10) {
@@ -2832,6 +2807,7 @@ function aiSend(msg) {
         document.getElementById('typing')?.remove();
         _aiHistory.push({ role: 'assistant', content: reply, ts: new Date().toISOString() });
         addChatMessage('ai', reply);
+        updateUserProfile(text, reply);
         saveConversation();
       });
       return;
@@ -2840,6 +2816,7 @@ function aiSend(msg) {
       var noKeyMsg = 'Untuk Company Research, Anda perlu mengatur **Serper API Key** di Pengaturan terlebih dahulu.\n\nKlik icon ⚙️ di pojok kiri bawah → masukkan Serper API Key → Simpan.';
       _aiHistory.push({ role: 'assistant', content: noKeyMsg, ts: new Date().toISOString() });
       addChatMessage('ai', noKeyMsg);
+      updateUserProfile(text, noKeyMsg);
       saveConversation();
       return;
     }
@@ -2848,6 +2825,7 @@ function aiSend(msg) {
       document.getElementById('typing')?.remove();
       _aiHistory.push({ role: 'assistant', content: reply, ts: new Date().toISOString() });
       addChatMessage('ai', reply);
+      updateUserProfile(text, reply);
       saveConversation();
     });
   } else {
@@ -2859,6 +2837,7 @@ function aiSend(msg) {
       '💡 Dapatkan API Key gratis di: **console.groq.com**';
     _aiHistory.push({ role: 'assistant', content: helpMsg, ts: new Date().toISOString() });
     addChatMessage('ai', helpMsg);
+    updateUserProfile(text, helpMsg);
     saveConversation();
   }
 }
@@ -2868,13 +2847,26 @@ function callGroqAI(userText, settings, callback) {
   var apiKey = settings.groqKey || '';
   var model = settings.groqModel || 'llama-3.3-70b-versatile';
 
-  // Build messages with system prompt + business context + history + current message
+  // Build messages with system prompt + business context + user profile + history + current message
   var businessCtx = buildBusinessContext();
+  var userProfileCtx = buildUserProfileContext();
+  var enhancedPrompt = AI_SYSTEM_PROMPT + businessCtx + userProfileCtx;
+  
+  // Add creativity instruction based on interaction count
+  var creativityBoost = '';
+  if (_userProfile.interactionCount > 5) {
+    creativityBoost = '\n\n⚠️ INGAT: Kamu sudah bicara dengan user sebanyak ' + _userProfile.interactionCount + ' kali. Berikan jawaban yang SAMA SEKALI BERBEDA dari jawaban-jawaban sebelumnya! Jangan ulangi pola atau format yang sama.';
+  }
+  if (_userProfile.interactionCount > 20) {
+    creativityBoost += '\nKamu sudah sangat kenal dengan user ini. Jawab dengan lebih personal, tapi tetap segar & berbeda setiap kali.';
+  }
+  enhancedPrompt += creativityBoost;
+  
   var messages = [
-    { role: 'system', content: AI_SYSTEM_PROMPT + businessCtx },
+    { role: 'system', content: enhancedPrompt },
   ];
-  // Add history (last 6 messages to save tokens)
-  var history = _aiHistory.slice(-6);
+  // Add history (last 12 messages for better context)
+  var history = _aiHistory.slice(-12);
   history.forEach(function(m) {
     messages.push({ role: m.role, content: m.content });
   });
@@ -2889,9 +2881,10 @@ function callGroqAI(userText, settings, callback) {
     body: JSON.stringify({
       model: model,
       messages: messages,
-      temperature: 0.5,
-      max_tokens: 2048,
-      frequency_penalty: 0.2,
+      temperature: 0.85,
+      max_tokens: 4096,
+      frequency_penalty: 0.4,
+      presence_penalty: 0.5,
     }),
   })
   .then(function(resp) {
