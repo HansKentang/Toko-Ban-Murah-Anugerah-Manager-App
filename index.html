@@ -1929,41 +1929,147 @@ function waBlast() {
 }
 
 // ═══ SOCIAL MEDIA ═══
+function callGroqSocial(prompt, options, callback) {
+  var s = getSettings();
+  var key = s.groqKey || '';
+  if (!key || !key.startsWith('gsk_') || key.length < 20) {
+    callback(null, '🔑 Atur Groq API Key di Pengaturan (icon ⚙️) untuk menggunakan fitur ini!');
+    return;
+  }
+  var model = s.groqModel || 'llama-3.3-70b-versatile';
+  fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: options.temperature || 0.85,
+      max_tokens: options.max_tokens || 1024,
+      frequency_penalty: options.frequency_penalty || 0.3,
+      presence_penalty: options.presence_penalty || 0.4,
+    }),
+  })
+  .then(function(r) {
+    if (!r.ok) {
+      return r.json().then(function(e) { throw new Error(e.error?.message || 'API Error: ' + r.status); });
+    }
+    return r.json();
+  })
+  .then(function(d) {
+    callback(d.choices[0].message.content.trim(), null);
+  })
+  .catch(function(e) {
+    callback(null, '😿 ' + (e.message || 'Gagal terhubung ke Groq. Cek koneksi & API Key.'));
+  });
+}
+
 function genCaption() {
   var t = document.getElementById('socialTemplate').value;
-  var caps = {
-    promo_harga: '*PROMO SPESIAL BAN MURAH!*\n\nDapatkan diskon hingga 20% untuk semua ban original!\n\n*Toko Ban Murah Anugerah*\nJl. Raya Utama No. 123\nTelp: 08123456789\n\n#PromoBan #BanMurah #TokoBan #SparepartMobil #Bridgestone #Michelin',
-    new_stock: '*STOK BARU TIBA!*\n\nBan-ban terbaru dari berbagai merek ternama sudah tersedia!\n\n- Bridgestone\n- Michelin\n- GT Radial\n- Dunlop\n- Accelera\n\nLangsung datang ke toko kami ya!\n\n#StokBaru #BanOriginal #TokoBan #Otomotif',
-    tips_ban: '*TIPS MERAWAT BAN MOBIL*\n\n1. Cek tekanan angin seminggu sekali\n2. Rotasi ban setiap 10.000 km\n3. Periksa ketebalan tread secara berkala\n4. Spooring & balancing rutin\n5. Gunakan ban sesuai spesifikasi mobil\n\n*Toko Ban Murah Anugerah*\n\n#TipsBan #PerawatanMobil #Otomotif #BanMobil',
-    testimoni: '*TESTIMONI PELANGGAN*\n\n\"Pelayanan ramah, harga bersaing, dan ban original! Pasti balik lagi ke sini!\" - Bapak Budi\n\nIngin pengalaman belanja ban yang menyenangkan? Kunjungi *Toko Ban Murah Anugerah* sekarang!\n\n#Testimoni #TokoBan #PelangganPuas #BanMurah',
-    produk_unggulan: '*PRODUK UNGGULAN KAMI*\n\n*Bridgestone Turanza* - Premium touring, nyaman & awet\n*Michelin Energy XM2* - Irit bahan bakar, umur panjang\n*GT Radial Champiro* - Performa tinggi, harga terjangkau\n\nSemua ban original 100% dengan garansi!\n\nInfo & pemesanan: 08123456789\n\n#ProdukUnggulan #BanPremium #TokoBan #Bridgestone #Michelin',
-    hari_libur: '*INFO OPERASIONAL*\n\n*Toko Ban Murah Anugerah*\nSenin - Sabtu: 08.00 - 17.00\nMinggu & Hari Libur: TUTUP\n\nUntuk pembelian di luar jam operasional, hubungi via WA ya!\nTelp: 08123456789\n\n#InfoToko #JamOperasional #TokoBan'
+  var el = document.getElementById('socialCaption');
+  
+  var templateNames = {
+    promo_harga: 'Promo Harga Spesial - diskon & promosi ban',
+    new_stock: 'Info Stok Baru - ban terbaru datang',
+    tips_ban: 'Tips Perawatan Ban - edukasi pelanggan',
+    testimoni: 'Testimoni Pelanggan - review & kesan pelanggan',
+    produk_unggulan: 'Produk Unggulan - rekomendasi ban terbaik',
+    hari_libur: 'Info Operasional - jam buka & hari libur'
   };
-  document.getElementById('socialCaption').value = caps[t] || caps.promo_harga;
+  
+  var prompt = 'Buat caption sosial media untuk TOKO BAN MURAH ANUGERAH dalam Bahasa Indonesia.\n\n' +
+    'JENIS: ' + (templateNames[t] || 'Promo Ban') + '\n\n' +
+    'INFO TOKO:\n' +
+    '- Nama: Toko Ban Murah Anugerah\n' +
+    '- Cabang: Banyumanik (4 teknisi) & Ungaran (3 teknisi)\n' +
+    '- WA: 081280595845 | IG: @tokobanmurahanugerah\n' +
+    '- 4 Pilar Brand: Affordable (Murah), Trustable (Terpercaya), Premium (Berkualitas), Fast (Cepat/Sat-Set)\n' +
+    '- Merek premium: Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken\n' +
+    '- Merek value: Accelera, GT Radial, Delium, Swallow, Sailun, Blackhawk\n' +
+    '- Kompetitor: SSM, Omah Ban, HSR Wheel\n\n' +
+    'KETENTUAN:\n' +
+    '1. Buat caption yang UNIK, kreatif, dan engaging — jangan pakai template yang itu-itu saja\n' +
+    '2. Gunakan bahasa Indonesia yang hangat dan natural\n' +
+    '3. Sertakan 3-5 hashtag relevan di akhir\n' +
+    '4. Jika relevan, tambahkan CTA untuk WA 081280595845 atau datang ke toko\n' +
+    '5. Panjang caption: 100-200 kata\n' +
+    '6. TANPA judul seperti "Caption:" — langsung konten caption-nya\n' +
+    '7. SETIAP KALI DIMINTA, buat caption yang BERBEDA dari sebelumnya!';
+  
+  el.value = '⏳ Mixmoi sedang menulis caption...';
+  callGroqSocial(prompt, { temperature: 0.85, max_tokens: 1024 }, function(reply, error) {
+    if (error) {
+      el.value = error;
+      showToast('error', 'Gagal generate caption');
+    } else {
+      el.value = reply;
+      showToast('success', '✅ Caption siap! Copy & paste ke Instagram/WA!');
+    }
+  });
 }
 
 function genContentPlan() {
-  var days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
-  var ideas = ['Promo Spesial Ban','Tips Perawatan Ban','Produk Unggulan','Testimoni Pelanggan','Info Operasional','Best Seller Ban','Quiz & Giveaway'];
-  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  days.forEach(function(d, i) {
-    html += '<div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">' +
-      '<div style="font-weight:700;color:var(--primary);font-size:12px;">' + d + '</div>' +
-      '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + ideas[i % ideas.length] + '</div></div>';
+  var el = document.getElementById('socialPlan');
+  
+  var prompt = 'Buat RENCANA KONTEN INSTAGRAM 7 HARI untuk TOKO BAN MURAH ANUGERAH dalam Bahasa Indonesia.\n\n' +
+    'INFO TOKO:\n' +
+    '- Toko ban dengan 2 cabang: Banyumanik (4 teknisi) & Ungaran (3 teknisi)\n' +
+    '- WA: 081280595845 | IG: @tokobanmurahanugerah\n' +
+    '- 4 Pilar Brand: Affordable, Trustable, Premium, Fast\n' +
+    '- Merek premium: Michelin, Bridgestone, Yokohama, Toyo, Goodyear, Dunlop, Hankook, Falken\n' +
+    '- Merek value: Accelera, GT Radial, Delium, Swallow, Sailun, Blackhawk\n' +
+    '- Kompetitor: SSM, Omah Ban, HSR Wheel\n\n' +
+    'KETENTUAN:\n' +
+    '1. Output ARRAY JSON dengan format: [{"hari":"Senin","tema":"...","ide":"...","caption_pendek":"..."}]\n' +
+    '2. 7 hari (Senin-Minggu) dengan tema & ide konten yang VARIATIF dan UNIK\n' +
+    '3. SETIAP KALI generate, buat rencana yang BERBEDA dari sebelumnya\n' +
+    '4. Variasikan: promo, edukasi, tips, testimoni, behind the scene, produk, quiz\n' +
+    '5. BALAS DENGAN ARRAY JSON SAJA (tanpa markdown, tanpa \`\`\`json)';
+  
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Mixmoi sedang menyusun rencana konten...</div>';
+  callGroqSocial(prompt, { temperature: 0.85, max_tokens: 2048 }, function(reply, error) {
+    if (error) {
+      el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">' + error + '</div>';
+      return;
+    }
+    try {
+      var clean = reply.replace(/```json|```/gi, '').trim();
+      var plan = JSON.parse(clean);
+      var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+      plan.forEach(function(p) {
+        html += '<div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">' +
+          '<div style="font-weight:700;color:var(--primary);font-size:12px;">' + p.hari + '</div>' +
+          '<div style="font-size:11px;color:var(--primary-soft);font-weight:600;margin-top:2px;">' + p.tema + '</div>' +
+          '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">' + p.ide + '</div>' +
+          '<div style="font-size:10px;color:var(--text-muted);margin-top:4px;font-style:italic;">' + p.caption_pendek + '</div></div>';
+      });
+      html += '</div>';
+      el.innerHTML = html;
+      showToast('success', '📅 Rencana konten 7 hari siap!');
+    } catch(e) {
+      el.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-light);">' + reply + '</div>';
+    }
   });
-  html += '</div>';
-  document.getElementById('socialPlan').innerHTML = html;
 }
 
 function genTip() {
-  var tips = [
-    'Ban depan dan belakang mobil memiliki tingkat keausan yang berbeda. Lakukan rotasi ban setiap 10.000 km untuk memperpanjang umur ban!',
-    'Tekanan angin ban yang tepat bisa menghemat bahan bakar hingga 3%! Cek tekanan ban seminggu sekali ya!',
-    'Ban dengan tread yang sudah tipis (di bawah 1.6mm) berbahaya saat jalan basah. Segera ganti ban Anda!',
-    'Ban radials memiliki konstruksi yang lebih fleksibel dan nyaman dibanding ban bias. Cocok untuk perjalanan jauh!',
-    'Suhu ban naik saat berkendara di tol. Pastikan tekanan angin sesuai rekomendasi pabrikan untuk menghindari pecah ban!'
-  ];
-  document.getElementById('socialTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+  var el = document.getElementById('socialTip');
+  
+  var prompt = 'Berikan 1 TIPS PERAWATAN BAN yang unik, bermanfaat, dan BERBEDA dari tips ban pada umumnya.\n\n' +
+    'KETENTUAN:\n' +
+    '1. Bahasa Indonesia yang hangat dan mudah dipahami\n' +
+    '2. Tips harus praktis dan bisa langsung diterapkan pemilik mobil/motor\n' +
+    '3. Berikan penjelasan MENGAPA tips itu penting (bukan cuma apa yang harus dilakukan)\n' +
+    '4. SETIAP KALI ditanya, berikan tips yang BERBEDA — jangan ulangi tips yang sama\n' +
+    '5. Panjang: 2-4 kalimat saja\n' +
+    '6. Jangan pakai awalan "Tips:" — langsung ke konten tips';
+  
+  el.textContent = '💡 Mixmoi sedang mencari tips terbaik...';
+  callGroqSocial(prompt, { temperature: 0.9, max_tokens: 256, frequency_penalty: 0.4, presence_penalty: 0.5 }, function(reply, error) {
+    el.textContent = error ? '😿 ' + error : '💡 ' + reply;
+  });
 }
 
 // ═══ COMPETITOR ═══
