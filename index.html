@@ -1011,34 +1011,7 @@ function initDB() {
 
 
 // Sample data functions removed — user wants manual input only
-function addSampleSalesData(db) { /* REMOVED */
-  for (var i = 0; i < 15; i++) {
-    var d = new Date();
-    d.setDate(d.getDate() - i);
-    var dateStr = d.toISOString().slice(0,10);
-    var items = Math.floor(Math.random() * 5) + 1;
-    var total = Math.floor(Math.random() * 5000000) + 500000;
-    var produk = 'Ban ' + ['Bridgestone','Michelin','GT Radial','Dunlop','Accelera'][Math.floor(Math.random() * 5)];
-    var cabang = i % 3 === 0 ? 'Ungaran' : 'Banyumanik';
-    db.sales.push({ id:'INV-' + String(1000 + i), tanggal: dateStr, pelanggan: 'Pelanggan ' + (i + 1), produk: produk, jumlah: items, total: total, status: Math.random() > 0.2 ? 'Lunas' : 'Pending', cabang: cabang });
-  }
-}
-
-function addSampleOrdersData(db) {
-  db.orders.push({ id:'ORD-001', pelanggan:'Budi Santoso', telp:'08123456789', produk:'Bridgestone 195/65R15', jumlah:4, total:2600000, status:'Proses', tgl:'2025-01-10', cabang:'Banyumanik' });
-  db.orders.push({ id:'ORD-002', pelanggan:'Siti Rahmawati', telp:'08234567890', produk:'Michelin 185/65R14', jumlah:2, total:1500000, status:'Selesai', tgl:'2025-01-09', cabang:'Ungaran' });
-  db.orders.push({ id:'ORD-003', pelanggan:'Ahmad Hidayat', telp:'08345678901', produk:'GT Radial 175/70R13', jumlah:8, total:3200000, status:'Pending', tgl:'2025-01-08', cabang:'Banyumanik' });
-}
-
-function addSampleCustomersData(db) {
-  var tiers = ['Gold','Silver','Bronze'];
-  var names = ['Budi Santoso','Siti Rahmawati','Ahmad Hidayat','Dewi Lestari','Rudi Hermawan','Rina Marlina','Agus Wijaya','Nur Aini'];
-  names.forEach(function(n, i) {
-    var t = tiers[Math.floor(Math.random() * tiers.length)];
-    var p = Math.floor(Math.random() * 20) + 1;
-    db.customers.push({ id:'CUS-' + String(1001 + i), nama: n, telp: '08' + String(Math.floor(100000000 + Math.random() * 900000000)), poin: p * 100, tier: t, totalBelanja: p * 1500000, bergabung: '2024-0' + ((i % 9) + 1) + '-0' + ((i % 28) + 1) });
-  });
-}
+// Sample data functions removed — manual input only
 // ─── Utility Functions ───
 function formatRupiah(n) {
   if (isNaN(n) || n === null || n === undefined) return '0';
@@ -1803,7 +1776,7 @@ function renderOrders() {
   updateOrderBadge();
 }
 
-// addSampleOrders removed — manual input only
+
 
 function showAddOrderModal() { document.getElementById('addOrderModal').classList.add('open'); }
 
@@ -1856,13 +1829,7 @@ function renderLoyalty() {
   document.getElementById('loyaltyTableContainer').innerHTML = html;
 }
 
-function addSampleCustomers() {
-  var db = getDB(); if (!db) return;
-  addSampleCustomersData(db);
-  saveDB(db);
-  renderLoyalty();
-  showToast('success', 'Sample pelanggan ditambahkan!');
-}
+// addSampleCustomers removed — manual input only
 
 // ═══ WHATSAPP ═══
 function waUpdatePreview() {
