@@ -646,7 +646,6 @@ table tr:hover { background:var(--bg-hover); }
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
             <div class="card-title" style="margin:0;"><span class="ms">receipt_long</span> Daftar Pesanan</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-success btn-sm" onclick="addSampleOrders()"><span class="ms sm">add</span> Sample</button>
               <button class="btn btn-primary btn-sm" onclick="showAddOrderModal()"><span class="ms sm">add_circle</span> Baru</button>
               <button class="btn btn-warning btn-sm" onclick="showPendingOrders()"><span class="ms sm">hourglass_empty</span> Pending</button>
             </div>
@@ -658,7 +657,6 @@ table tr:hover { background:var(--bg-hover); }
         <div class="grid-4" id="tierCards"></div>
         <div class="card">
           <div class="card-title"><span class="ms">people</span> Pelanggan</div>
-          <button class="btn btn-success btn-sm mb-3" onclick="addSampleCustomers()"><span class="ms sm">add</span> Sample</button>
           <div class="table-container" id="loyaltyTableContainer"></div>
         </div>
       </div>
@@ -1007,15 +1005,13 @@ function initDB() {
   var db = getDB();
   if (db && db.initialized && db.dataVersion === DATA_VERSION) return db;
   db = { initialized: true, dataVersion: DATA_VERSION, sales: [], orders: [], customers: [], competitorHistory: [], socialPosts: [], priceHistory: [] };
-  addSampleSalesData(db);
-  addSampleOrdersData(db);
-  addSampleCustomersData(db);
   saveDB(db);
   return db;
 }
 
 
-function addSampleSalesData(db) {
+// Sample data functions removed — user wants manual input only
+/*function addSampleSalesData(db) {
   for (var i = 0; i < 15; i++) {
     var d = new Date();
     d.setDate(d.getDate() - i);
@@ -1807,13 +1803,7 @@ function renderOrders() {
   updateOrderBadge();
 }
 
-function addSampleOrders() {
-  var db = getDB(); if (!db) return;
-  addSampleOrdersData(db);
-  saveDB(db);
-  renderOrders();
-  showToast('success', 'Sample pesanan ditambahkan!');
-}
+// addSampleOrders removed — manual input only
 
 function showAddOrderModal() { document.getElementById('addOrderModal').classList.add('open'); }
 
