@@ -412,7 +412,7 @@ table tr:hover { background:var(--bg-hover); }
       <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span class="nav-icon"><span class="ms">dashboard</span></span>Dashboard</button>
       <button class="nav-item" data-page="ai" onclick="navigate('ai')"><span class="nav-icon"><span class="ms">🐱</span></span>Mixmoi</button>
       <div class="nav-label">Manajemen Bisnis</div>
-      <button class="nav-item" data-page="whatsapp" onclick="navigate('whatsapp')"><span class="nav-icon"><span class="ms">smart_toy</span></span>WhatsApp Bot</button>
+
       <button class="nav-item" data-page="inventory" onclick="navigate('inventory')"><span class="nav-icon"><span class="ms">inventory_2</span></span>Inventory</button>
       <button class="nav-item" data-page="pricelist" onclick="navigate('pricelist')"><span class="nav-icon"><span class="ms">payments</span></span>Price List</button>
       <button class="nav-item" data-page="sales" onclick="navigate('sales')"><span class="nav-icon"><span class="ms">trending_up</span></span>Sales Dashboard</button>
@@ -455,7 +455,7 @@ table tr:hover { background:var(--bg-hover); }
         <div class="card">
           <div class="card-title"><span class="ms">bolt</span> Aksi Cepat</div>
           <div style="display:flex;flex-wrap:wrap;gap:10px;">
-            <button class="btn btn-primary" onclick="navigate('whatsapp')"><span class="ms sm">smart_toy</span> Kirim Promo WA</button>
+
             <button class="btn btn-warning" onclick="navigate('inventory')"><span class="ms sm">inventory_2</span> Cek Stok Menipis</button>
             <button class="btn btn-success" onclick="navigate('pricelist')"><span class="ms sm">payments</span> Daftar Harga</button>
             <button class="btn btn-outline" onclick="navigate('orders')"><span class="ms sm">receipt_long</span> Pesanan</button>
@@ -523,32 +523,7 @@ table tr:hover { background:var(--bg-hover); }
           </div>
         </div>
       </div>
-      <div class="page" id="page-whatsapp">
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-title"><span class="ms">send</span> Kirim Pesan</div>
-            <div class="form-group"><label>Nomor Telepon</label><input class="form-input" id="waPhone" placeholder="08123456789"></div>
-            <div class="form-group">
-              <label>Template</label>
-              <select class="form-select" id="waTemplate" onchange="waUpdatePreview()">
-                <option value="promo">Promo</option><option value="halo">Salam</option>
-                <option value="harga">Harga</option><option value="lokasi">Lokasi</option>
-                <option value="stok">Stok</option><option value="terima_kasih">Terima Kasih</option>
-              </select>
-            </div>
-            <div class="form-group"><label>Preview</label><textarea class="form-textarea" id="waPreview" rows="6" readonly></textarea></div>
-            <button class="btn btn-primary btn-full" onclick="waSend()"><span class="ms sm">send</span> Kirim</button>
-          </div>
-          <div class="card">
-            <div class="card-title"><span class="ms">campaign</span> Promo Blast</div>
-            <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Kirim promo ke semua pelanggan</p>
-            <button class="btn btn-success btn-full mb-3" onclick="waBlast()"><span class="ms sm">campaign</span> Kirim ke Semua</button>
-            <hr class="divider">
-            <div class="card-title"><span class="ms">book</span> Template</div>
-            <div id="waTemplateList" style="font-size:13px;line-height:1.8;"></div>
-          </div>
-        </div>
-      </div>
+
       <div class="page" id="page-inventory">
         <div class="stats-grid" id="invStats"></div>
         <div class="card" style="padding:18px 20px;">
@@ -1271,7 +1246,7 @@ function navigate(page) {
   var nav = document.querySelector('.nav-item[data-page="' + page + '"]');
   if (nav) nav.classList.add('active');
   document.querySelector('.sidebar.open') && toggleSidebar();
-  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms">🐱</span> Mixmoi', whatsapp:'<span class=\"ms\">smart_toy</span> WhatsApp Bot', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog', desktop:'<span class=\"ms\">💻</span> Desktop App' };
+  var titles = { dashboard:'<span class=\"ms\">dashboard</span> Dashboard', ai:'<span class="ms">🐱</span> Mixmoi', inventory:'<span class=\"ms\">inventory_2</span> Inventory', pricelist:'<span class=\"ms\">payments</span> Price List', sales:'<span class=\"ms\">trending_up</span> Sales', social:'<span class=\"ms\">campaign</span> Social Media', competitor:'<span class=\"ms\">manage_search</span> Competitor', orders:'<span class=\"ms\">receipt_long</span> Orders', loyalty:'<span class=\"ms\">star</span> Loyalty', sheets:'<span class=\"ms\">description</span> Excel Auto', qr:'<span class=\"ms\">qr_code_scanner</span> QR Catalog', desktop:'<span class=\"ms\">💻</span> Desktop App' };
   document.getElementById('pageTitle').innerHTML = (titles[page] || '<span class="ms">dashboard</span> <span>Dashboard</span>');
   if (page === 'dashboard') renderDashboard();
   if (page === 'ai') { setTimeout(function() { var ci = document.getElementById('chatInput'); if (ci) ci.focus(); }, 300); }
@@ -1280,7 +1255,7 @@ function navigate(page) {
   if (page === 'sales') renderSalesDashboard();
   if (page === 'orders') renderOrders();
   if (page === 'loyalty') renderLoyalty();
-  if (page === 'whatsapp') { waUpdatePreview(); waListTemplates(); }
+
   if (page === 'social') { genCaption(); genContentPlan(); }
   if (page === 'qr') genQRCatalog();
   if (page === 'desktop') renderDesktopPage();
@@ -1832,6 +1807,7 @@ function renderLoyalty() {
 // addSampleCustomers removed — manual input only
 
 // ═══ WHATSAPP ═══
+// WhatsApp Bot removed
 function waUpdatePreview() {
   var t = document.getElementById('waTemplate').value;
   var pre = '';
