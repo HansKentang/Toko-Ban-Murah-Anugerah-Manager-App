@@ -417,13 +417,10 @@ table tr:hover { background:var(--bg-hover); }
       <button class="nav-item" data-page="pricelist" onclick="navigate('pricelist')"><span class="nav-icon"><span class="ms">payments</span></span>Price List</button>
       <button class="nav-item" data-page="sales" onclick="navigate('sales')"><span class="nav-icon"><span class="ms">trending_up</span></span>Sales Dashboard</button>
       <button class="nav-item" data-page="social" onclick="navigate('social')"><span class="nav-icon"><span class="ms">campaign</span></span>Social Media</button>
-      <button class="nav-item" data-page="competitor" onclick="navigate('competitor')"><span class="nav-icon"><span class="ms">manage_search</span></span>Competitor Monitor</button>
       <button class="nav-item" data-page="orders" onclick="navigate('orders')"><span class="nav-icon"><span class="ms">receipt_long</span></span>Order Manager<span class="nav-badge" id="orderBadge">0</span></button>
-      <button class="nav-item" data-page="loyalty" onclick="navigate('loyalty')"><span class="nav-icon"><span class="ms">star</span></span>Loyalty Program</button>
       <button class="nav-item" data-page="sheets" onclick="navigate('sheets')"><span class="nav-icon"><span class="ms">description</span></span>Excel Auto</button>
-      <button class="nav-item" data-page="qr" onclick="navigate('qr')"><span class="nav-icon"><span class="ms">qr_code_scanner</span></span>QR Catalog</button>
       <div class="nav-label">Lainnya</div>
-      <button class="nav-item desktop-locked" id="desktopNavBtn"><span class="nav-icon">🔒</span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span></button>
+      <button class="nav-item desktop-locked" id="desktopNavBtn" style="display:none;"><span class="nav-icon">🔒</span><span id="desktopNavLabel">Desktop App</span><span class="desktop-badge-locked" id="desktopBadge">🔒 Terkunci</span></button>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-settings-btn" onclick="openSettingsModal()" title="Pengaturan"><span class="ms">settings</span></button><span class="sidebar-footer-spacer"></span><span class="status-dot"></span><span class="version">v1.0 · Semua siap</span></div>
   </aside>
@@ -2788,6 +2785,7 @@ function aiSend(msg) {
       'Atau klik **💻 Desktop App** di sidebar untuk panduan lengkapnya!';
     _aiHistory.push({ role: 'assistant', content: unlockReply, ts: new Date().toISOString() });
     addChatMessage('ai', unlockReply);
+    updateUserProfile(text, unlockReply);
     saveConversation();
     showToast('success', '🔓 Desktop App terbuka!');
     return;
